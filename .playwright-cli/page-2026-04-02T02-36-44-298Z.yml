@@ -1,0 +1,1253 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e5]:
+          - link "XYZ" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - img "XYZ" [ref=e7]
+          - navigation [ref=e8]:
+            - link "Trade" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - paragraph [ref=e10]: Trade
+            - link "Portfolio" [ref=e11] [cursor=pointer]:
+              - /url: /portfolio
+              - paragraph [ref=e12]: Portfolio
+            - link "Bounds" [ref=e13] [cursor=pointer]:
+              - /url: /discovery-bounds
+              - paragraph [ref=e14]: Bounds
+        - generic [ref=e18]:
+          - generic [ref=e20]:
+            - button "CL +1.14%" [ref=e22] [cursor=pointer]:
+              - generic [ref=e23]:
+                - img [ref=e24]
+                - generic [ref=e26]: CL
+                - img [ref=e27]
+              - generic [ref=e29]:
+                - text: +1.14%
+                - img [ref=e30]
+            - button "BRENTOIL +0.50%" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]:
+                - img [ref=e35]
+                - generic [ref=e37]: BRENTOIL
+                - img [ref=e38]
+              - generic [ref=e40]:
+                - text: +0.50%
+                - img [ref=e41]
+            - button "XYZ100 -0.40%" [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]:
+                - img [ref=e46]
+                - generic [ref=e48]: XYZ100
+                - img [ref=e49]
+              - generic [ref=e51]:
+                - text: "-0.40%"
+                - img [ref=e52]
+            - button "SP500 -0.56%" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56]:
+                - img [ref=e57]
+                - generic [ref=e59]: SP500
+                - img [ref=e60]
+              - generic [ref=e62]:
+                - text: "-0.56%"
+                - img [ref=e63]
+            - button "SILVER -3.08%" [ref=e66] [cursor=pointer]:
+              - generic [ref=e67]:
+                - img [ref=e68]
+                - generic [ref=e70]: SILVER
+                - img [ref=e71]
+              - generic [ref=e73]:
+                - text: "-3.08%"
+                - img [ref=e74]
+            - button "GOLD -0.25%" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]:
+                - img [ref=e79]
+                - generic [ref=e81]: GOLD
+                - img [ref=e82]
+              - generic [ref=e84]:
+                - text: "-0.25%"
+                - img [ref=e85]
+            - button "SNDK +3.25%" [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]:
+                - img [ref=e90]
+                - generic [ref=e92]: SNDK
+                - img [ref=e93]
+              - generic [ref=e95]:
+                - text: +3.25%
+                - img [ref=e96]
+            - button "CRCL -8.30%" [ref=e99] [cursor=pointer]:
+              - generic [ref=e100]:
+                - img [ref=e101]
+                - generic [ref=e103]: CRCL
+                - img [ref=e104]
+              - generic [ref=e106]:
+                - text: "-8.30%"
+                - img [ref=e107]
+            - button "MU +3.03%" [ref=e110] [cursor=pointer]:
+              - generic [ref=e111]:
+                - img [ref=e112]
+                - generic [ref=e114]: MU
+                - img [ref=e115]
+              - generic [ref=e117]:
+                - text: +3.03%
+                - img [ref=e118]
+            - button "NVDA -1.45%" [ref=e121] [cursor=pointer]:
+              - generic [ref=e122]:
+                - img [ref=e123]
+                - generic [ref=e125]: NVDA
+                - img [ref=e126]
+              - generic [ref=e128]:
+                - text: "-1.45%"
+                - img [ref=e129]
+            - button "TSLA -0.21%" [ref=e132] [cursor=pointer]:
+              - generic [ref=e133]:
+                - img [ref=e134]
+                - generic [ref=e136]: TSLA
+                - img [ref=e137]
+              - generic [ref=e139]:
+                - text: "-0.21%"
+                - img [ref=e140]
+            - button "INTC +6.18%" [ref=e143] [cursor=pointer]:
+              - generic [ref=e144]:
+                - img [ref=e145]
+                - generic [ref=e147]: INTC
+                - img [ref=e148]
+              - generic [ref=e150]:
+                - text: +6.18%
+                - img [ref=e151]
+            - button "NATGAS -0.34%" [ref=e154] [cursor=pointer]:
+              - generic [ref=e155]:
+                - img [ref=e156]
+                - generic [ref=e158]: NATGAS
+                - img [ref=e159]
+              - generic [ref=e161]:
+                - text: "-0.34%"
+                - img [ref=e162]
+            - button "EWY -3.41%" [ref=e165] [cursor=pointer]:
+              - generic [ref=e166]:
+                - img [ref=e167]
+                - generic [ref=e169]: EWY
+                - img [ref=e170]
+              - generic [ref=e172]:
+                - text: "-3.41%"
+                - img [ref=e173]
+            - button "COIN -3.85%" [ref=e176] [cursor=pointer]:
+              - generic [ref=e177]:
+                - img [ref=e178]
+                - generic [ref=e180]: COIN
+                - img [ref=e181]
+              - generic [ref=e183]:
+                - text: "-3.85%"
+                - img [ref=e184]
+            - button "PLATINUM -2.43%" [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]:
+                - img [ref=e189]
+                - generic [ref=e191]: PLATINUM
+                - img [ref=e192]
+              - generic [ref=e194]:
+                - text: "-2.43%"
+                - img [ref=e195]
+            - button "EUR -0.21%" [ref=e198] [cursor=pointer]:
+              - generic [ref=e199]:
+                - img [ref=e200]
+                - generic [ref=e202]: EUR
+                - img [ref=e203]
+              - generic [ref=e205]:
+                - text: "-0.21%"
+                - img [ref=e206]
+            - button "GOOGL +0.74%" [ref=e209] [cursor=pointer]:
+              - generic [ref=e210]:
+                - img [ref=e211]
+                - generic [ref=e213]: GOOGL
+                - img [ref=e214]
+              - generic [ref=e216]:
+                - text: +0.74%
+                - img [ref=e217]
+            - button "HOOD -2.54%" [ref=e220] [cursor=pointer]:
+              - generic [ref=e221]:
+                - img [ref=e222]
+                - generic [ref=e224]: HOOD
+                - img [ref=e225]
+              - generic [ref=e227]:
+                - text: "-2.54%"
+                - img [ref=e228]
+            - button "JPY +0.43%" [ref=e231] [cursor=pointer]:
+              - generic [ref=e232]:
+                - img [ref=e233]
+                - generic [ref=e235]: JPY
+                - img [ref=e236]
+              - generic [ref=e238]:
+                - text: +0.43%
+                - img [ref=e239]
+            - button "PLTR -2.52%" [ref=e242] [cursor=pointer]:
+              - generic [ref=e243]:
+                - img [ref=e244]
+                - generic [ref=e246]: PLTR
+                - img [ref=e247]
+              - generic [ref=e249]:
+                - text: "-2.52%"
+                - img [ref=e250]
+            - button "COPPER -1.66%" [ref=e253] [cursor=pointer]:
+              - generic [ref=e254]:
+                - img [ref=e255]
+                - generic [ref=e257]: COPPER
+                - img [ref=e258]
+              - generic [ref=e260]:
+                - text: "-1.66%"
+                - img [ref=e261]
+            - button "MSTR -3.70%" [ref=e264] [cursor=pointer]:
+              - generic [ref=e265]:
+                - img [ref=e266]
+                - generic [ref=e268]: MSTR
+                - img [ref=e269]
+              - generic [ref=e271]:
+                - text: "-3.70%"
+                - img [ref=e272]
+            - button "META -1.06%" [ref=e275] [cursor=pointer]:
+              - generic [ref=e276]:
+                - img [ref=e277]
+                - generic [ref=e279]: META
+                - img [ref=e280]
+              - generic [ref=e282]:
+                - text: "-1.06%"
+                - img [ref=e283]
+            - button "MSFT -2.09%" [ref=e286] [cursor=pointer]:
+              - generic [ref=e287]:
+                - img [ref=e288]
+                - generic [ref=e290]: MSFT
+                - img [ref=e291]
+              - generic [ref=e293]:
+                - text: "-2.09%"
+                - img [ref=e294]
+            - button "CRWV -2.64%" [ref=e297] [cursor=pointer]:
+              - generic [ref=e298]:
+                - img [ref=e299]
+                - generic [ref=e301]: CRWV
+                - img [ref=e302]
+              - generic [ref=e304]:
+                - text: "-2.64%"
+                - img [ref=e305]
+            - button "AMZN -0.88%" [ref=e308] [cursor=pointer]:
+              - generic [ref=e309]:
+                - img [ref=e310]
+                - generic [ref=e312]: AMZN
+                - img [ref=e313]
+              - generic [ref=e315]:
+                - text: "-0.88%"
+                - img [ref=e316]
+            - button "SKHX -4.21%" [ref=e319] [cursor=pointer]:
+              - generic [ref=e320]:
+                - img [ref=e321]
+                - generic [ref=e323]: SKHX
+                - img [ref=e324]
+              - generic [ref=e326]:
+                - text: "-4.21%"
+                - img [ref=e327]
+            - button "AAPL -0.12%" [ref=e330] [cursor=pointer]:
+              - generic [ref=e331]:
+                - img [ref=e332]
+                - generic [ref=e334]: AAPL
+                - img [ref=e335]
+              - generic [ref=e337]:
+                - text: "-0.12%"
+                - img [ref=e338]
+            - button "AMD +0.95%" [ref=e341] [cursor=pointer]:
+              - generic [ref=e342]:
+                - img [ref=e343]
+                - generic [ref=e345]: AMD
+                - img [ref=e346]
+              - generic [ref=e348]:
+                - text: +0.95%
+                - img [ref=e349]
+            - button "NFLX -1.50%" [ref=e352] [cursor=pointer]:
+              - generic [ref=e353]:
+                - img [ref=e354]
+                - generic [ref=e356]: NFLX
+                - img [ref=e357]
+              - generic [ref=e359]:
+                - text: "-1.50%"
+                - img [ref=e360]
+            - button "TSM -2.48%" [ref=e363] [cursor=pointer]:
+              - generic [ref=e364]:
+                - img [ref=e365]
+                - generic [ref=e367]: TSM
+                - img [ref=e368]
+              - generic [ref=e370]:
+                - text: "-2.48%"
+                - img [ref=e371]
+            - button "USAR -5.16%" [ref=e374] [cursor=pointer]:
+              - generic [ref=e375]:
+                - img [ref=e376]
+                - generic [ref=e378]: USAR
+                - img [ref=e379]
+              - generic [ref=e381]:
+                - text: "-5.16%"
+                - img [ref=e382]
+            - button "LLY +2.52%" [ref=e385] [cursor=pointer]:
+              - generic [ref=e386]:
+                - img [ref=e387]
+                - generic [ref=e389]: LLY
+                - img [ref=e390]
+              - generic [ref=e392]:
+                - text: +2.52%
+                - img [ref=e393]
+            - button "ORCL -3.70%" [ref=e396] [cursor=pointer]:
+              - generic [ref=e397]:
+                - img [ref=e398]
+                - generic [ref=e400]: ORCL
+                - img [ref=e401]
+              - generic [ref=e403]:
+                - text: "-3.70%"
+                - img [ref=e404]
+            - button "EWJ -0.11%" [ref=e407] [cursor=pointer]:
+              - generic [ref=e408]:
+                - img [ref=e409]
+                - generic [ref=e411]: EWJ
+                - img [ref=e412]
+              - generic [ref=e414]:
+                - text: "-0.11%"
+                - img [ref=e415]
+            - button "SMSN -2.47%" [ref=e418] [cursor=pointer]:
+              - generic [ref=e419]:
+                - img [ref=e420]
+                - generic [ref=e422]: SMSN
+                - img [ref=e423]
+              - generic [ref=e425]:
+                - text: "-2.47%"
+                - img [ref=e426]
+            - button "RIVN -2.79%" [ref=e429] [cursor=pointer]:
+              - generic [ref=e430]:
+                - img [ref=e431]
+                - generic [ref=e433]: RIVN
+                - img [ref=e434]
+              - generic [ref=e436]:
+                - text: "-2.79%"
+                - img [ref=e437]
+            - button "BABA -2.51%" [ref=e440] [cursor=pointer]:
+              - generic [ref=e441]:
+                - img [ref=e442]
+                - generic [ref=e444]: BABA
+                - img [ref=e445]
+              - generic [ref=e447]:
+                - text: "-2.51%"
+                - img [ref=e448]
+            - button "PALLADIUM -2.69%" [ref=e451] [cursor=pointer]:
+              - generic [ref=e452]:
+                - img [ref=e453]
+                - generic [ref=e455]: PALLADIUM
+                - img [ref=e456]
+              - generic [ref=e458]:
+                - text: "-2.69%"
+                - img [ref=e459]
+            - button "COST +0.18%" [ref=e462] [cursor=pointer]:
+              - generic [ref=e463]:
+                - img [ref=e464]
+                - generic [ref=e466]: COST
+                - img [ref=e467]
+              - generic [ref=e469]:
+                - text: +0.18%
+                - img [ref=e470]
+            - button "URNM -2.04%" [ref=e473] [cursor=pointer]:
+              - generic [ref=e474]:
+                - img [ref=e475]
+                - generic [ref=e477]: URNM
+                - img [ref=e478]
+              - generic [ref=e480]:
+                - text: "-2.04%"
+                - img [ref=e481]
+            - button "HIMS -7.20%" [ref=e484] [cursor=pointer]:
+              - generic [ref=e485]:
+                - img [ref=e486]
+                - generic [ref=e488]: HIMS
+                - img [ref=e489]
+              - generic [ref=e491]:
+                - text: "-7.20%"
+                - img [ref=e492]
+            - button "HYUNDAI -1.86%" [ref=e495] [cursor=pointer]:
+              - generic [ref=e496]:
+                - img [ref=e497]
+                - generic [ref=e499]: HYUNDAI
+                - img [ref=e500]
+              - generic [ref=e502]:
+                - text: "-1.86%"
+                - img [ref=e503]
+            - button "DKNG +0.59%" [ref=e506] [cursor=pointer]:
+              - generic [ref=e507]:
+                - img [ref=e508]
+                - generic [ref=e510]: DKNG
+                - img [ref=e511]
+              - generic [ref=e513]:
+                - text: +0.59%
+                - img [ref=e514]
+          - generic [ref=e516]:
+            - button "CL +1.14%" [ref=e518] [cursor=pointer]:
+              - generic [ref=e519]:
+                - img [ref=e520]
+                - generic [ref=e522]: CL
+                - img [ref=e523]
+              - generic [ref=e525]:
+                - text: +1.14%
+                - img [ref=e526]
+            - button "BRENTOIL +0.50%" [ref=e529] [cursor=pointer]:
+              - generic [ref=e530]:
+                - img [ref=e531]
+                - generic [ref=e533]: BRENTOIL
+                - img [ref=e534]
+              - generic [ref=e536]:
+                - text: +0.50%
+                - img [ref=e537]
+            - button "XYZ100 -0.40%" [ref=e540] [cursor=pointer]:
+              - generic [ref=e541]:
+                - img [ref=e542]
+                - generic [ref=e544]: XYZ100
+                - img [ref=e545]
+              - generic [ref=e547]:
+                - text: "-0.40%"
+                - img [ref=e548]
+            - button "SP500 -0.56%" [ref=e551] [cursor=pointer]:
+              - generic [ref=e552]:
+                - img [ref=e553]
+                - generic [ref=e555]: SP500
+                - img [ref=e556]
+              - generic [ref=e558]:
+                - text: "-0.56%"
+                - img [ref=e559]
+            - button "SILVER -3.08%" [ref=e562] [cursor=pointer]:
+              - generic [ref=e563]:
+                - img [ref=e564]
+                - generic [ref=e566]: SILVER
+                - img [ref=e567]
+              - generic [ref=e569]:
+                - text: "-3.08%"
+                - img [ref=e570]
+            - button "GOLD -0.25%" [ref=e573] [cursor=pointer]:
+              - generic [ref=e574]:
+                - img [ref=e575]
+                - generic [ref=e577]: GOLD
+                - img [ref=e578]
+              - generic [ref=e580]:
+                - text: "-0.25%"
+                - img [ref=e581]
+            - button "SNDK +3.25%" [ref=e584] [cursor=pointer]:
+              - generic [ref=e585]:
+                - img [ref=e586]
+                - generic [ref=e588]: SNDK
+                - img [ref=e589]
+              - generic [ref=e591]:
+                - text: +3.25%
+                - img [ref=e592]
+            - button "CRCL -8.30%" [ref=e595] [cursor=pointer]:
+              - generic [ref=e596]:
+                - img [ref=e597]
+                - generic [ref=e599]: CRCL
+                - img [ref=e600]
+              - generic [ref=e602]:
+                - text: "-8.30%"
+                - img [ref=e603]
+            - button "MU +3.03%" [ref=e606] [cursor=pointer]:
+              - generic [ref=e607]:
+                - img [ref=e608]
+                - generic [ref=e610]: MU
+                - img [ref=e611]
+              - generic [ref=e613]:
+                - text: +3.03%
+                - img [ref=e614]
+            - button "NVDA -1.45%" [ref=e617] [cursor=pointer]:
+              - generic [ref=e618]:
+                - img [ref=e619]
+                - generic [ref=e621]: NVDA
+                - img [ref=e622]
+              - generic [ref=e624]:
+                - text: "-1.45%"
+                - img [ref=e625]
+            - button "TSLA -0.21%" [ref=e628] [cursor=pointer]:
+              - generic [ref=e629]:
+                - img [ref=e630]
+                - generic [ref=e632]: TSLA
+                - img [ref=e633]
+              - generic [ref=e635]:
+                - text: "-0.21%"
+                - img [ref=e636]
+            - button "INTC +6.18%" [ref=e639] [cursor=pointer]:
+              - generic [ref=e640]:
+                - img [ref=e641]
+                - generic [ref=e643]: INTC
+                - img [ref=e644]
+              - generic [ref=e646]:
+                - text: +6.18%
+                - img [ref=e647]
+            - button "NATGAS -0.34%" [ref=e650] [cursor=pointer]:
+              - generic [ref=e651]:
+                - img [ref=e652]
+                - generic [ref=e654]: NATGAS
+                - img [ref=e655]
+              - generic [ref=e657]:
+                - text: "-0.34%"
+                - img [ref=e658]
+            - button "EWY -3.41%" [ref=e661] [cursor=pointer]:
+              - generic [ref=e662]:
+                - img [ref=e663]
+                - generic [ref=e665]: EWY
+                - img [ref=e666]
+              - generic [ref=e668]:
+                - text: "-3.41%"
+                - img [ref=e669]
+            - button "COIN -3.85%" [ref=e672] [cursor=pointer]:
+              - generic [ref=e673]:
+                - img [ref=e674]
+                - generic [ref=e676]: COIN
+                - img [ref=e677]
+              - generic [ref=e679]:
+                - text: "-3.85%"
+                - img [ref=e680]
+            - button "PLATINUM -2.43%" [ref=e683] [cursor=pointer]:
+              - generic [ref=e684]:
+                - img [ref=e685]
+                - generic [ref=e687]: PLATINUM
+                - img [ref=e688]
+              - generic [ref=e690]:
+                - text: "-2.43%"
+                - img [ref=e691]
+            - button "EUR -0.21%" [ref=e694] [cursor=pointer]:
+              - generic [ref=e695]:
+                - img [ref=e696]
+                - generic [ref=e698]: EUR
+                - img [ref=e699]
+              - generic [ref=e701]:
+                - text: "-0.21%"
+                - img [ref=e702]
+            - button "GOOGL +0.74%" [ref=e705] [cursor=pointer]:
+              - generic [ref=e706]:
+                - img [ref=e707]
+                - generic [ref=e709]: GOOGL
+                - img [ref=e710]
+              - generic [ref=e712]:
+                - text: +0.74%
+                - img [ref=e713]
+            - button "HOOD -2.54%" [ref=e716] [cursor=pointer]:
+              - generic [ref=e717]:
+                - img [ref=e718]
+                - generic [ref=e720]: HOOD
+                - img [ref=e721]
+              - generic [ref=e723]:
+                - text: "-2.54%"
+                - img [ref=e724]
+            - button "JPY +0.43%" [ref=e727] [cursor=pointer]:
+              - generic [ref=e728]:
+                - img [ref=e729]
+                - generic [ref=e731]: JPY
+                - img [ref=e732]
+              - generic [ref=e734]:
+                - text: +0.43%
+                - img [ref=e735]
+            - button "PLTR -2.52%" [ref=e738] [cursor=pointer]:
+              - generic [ref=e739]:
+                - img [ref=e740]
+                - generic [ref=e742]: PLTR
+                - img [ref=e743]
+              - generic [ref=e745]:
+                - text: "-2.52%"
+                - img [ref=e746]
+            - button "COPPER -1.66%" [ref=e749] [cursor=pointer]:
+              - generic [ref=e750]:
+                - img [ref=e751]
+                - generic [ref=e753]: COPPER
+                - img [ref=e754]
+              - generic [ref=e756]:
+                - text: "-1.66%"
+                - img [ref=e757]
+            - button "MSTR -3.70%" [ref=e760] [cursor=pointer]:
+              - generic [ref=e761]:
+                - img [ref=e762]
+                - generic [ref=e764]: MSTR
+                - img [ref=e765]
+              - generic [ref=e767]:
+                - text: "-3.70%"
+                - img [ref=e768]
+            - button "META -1.06%" [ref=e771] [cursor=pointer]:
+              - generic [ref=e772]:
+                - img [ref=e773]
+                - generic [ref=e775]: META
+                - img [ref=e776]
+              - generic [ref=e778]:
+                - text: "-1.06%"
+                - img [ref=e779]
+            - button "MSFT -2.09%" [ref=e782] [cursor=pointer]:
+              - generic [ref=e783]:
+                - img [ref=e784]
+                - generic [ref=e786]: MSFT
+                - img [ref=e787]
+              - generic [ref=e789]:
+                - text: "-2.09%"
+                - img [ref=e790]
+            - button "CRWV -2.64%" [ref=e793] [cursor=pointer]:
+              - generic [ref=e794]:
+                - img [ref=e795]
+                - generic [ref=e797]: CRWV
+                - img [ref=e798]
+              - generic [ref=e800]:
+                - text: "-2.64%"
+                - img [ref=e801]
+            - button "AMZN -0.88%" [ref=e804] [cursor=pointer]:
+              - generic [ref=e805]:
+                - img [ref=e806]
+                - generic [ref=e808]: AMZN
+                - img [ref=e809]
+              - generic [ref=e811]:
+                - text: "-0.88%"
+                - img [ref=e812]
+            - button "SKHX -4.21%" [ref=e815] [cursor=pointer]:
+              - generic [ref=e816]:
+                - img [ref=e817]
+                - generic [ref=e819]: SKHX
+                - img [ref=e820]
+              - generic [ref=e822]:
+                - text: "-4.21%"
+                - img [ref=e823]
+            - button "AAPL -0.12%" [ref=e826] [cursor=pointer]:
+              - generic [ref=e827]:
+                - img [ref=e828]
+                - generic [ref=e830]: AAPL
+                - img [ref=e831]
+              - generic [ref=e833]:
+                - text: "-0.12%"
+                - img [ref=e834]
+            - button "AMD +0.95%" [ref=e837] [cursor=pointer]:
+              - generic [ref=e838]:
+                - img [ref=e839]
+                - generic [ref=e841]: AMD
+                - img [ref=e842]
+              - generic [ref=e844]:
+                - text: +0.95%
+                - img [ref=e845]
+            - button "NFLX -1.50%" [ref=e848] [cursor=pointer]:
+              - generic [ref=e849]:
+                - img [ref=e850]
+                - generic [ref=e852]: NFLX
+                - img [ref=e853]
+              - generic [ref=e855]:
+                - text: "-1.50%"
+                - img [ref=e856]
+            - button "TSM -2.48%" [ref=e859] [cursor=pointer]:
+              - generic [ref=e860]:
+                - img [ref=e861]
+                - generic [ref=e863]: TSM
+                - img [ref=e864]
+              - generic [ref=e866]:
+                - text: "-2.48%"
+                - img [ref=e867]
+            - button "USAR -5.16%" [ref=e870] [cursor=pointer]:
+              - generic [ref=e871]:
+                - img [ref=e872]
+                - generic [ref=e874]: USAR
+                - img [ref=e875]
+              - generic [ref=e877]:
+                - text: "-5.16%"
+                - img [ref=e878]
+            - button "LLY +2.52%" [ref=e881] [cursor=pointer]:
+              - generic [ref=e882]:
+                - img [ref=e883]
+                - generic [ref=e885]: LLY
+                - img [ref=e886]
+              - generic [ref=e888]:
+                - text: +2.52%
+                - img [ref=e889]
+            - button "ORCL -3.70%" [ref=e892] [cursor=pointer]:
+              - generic [ref=e893]:
+                - img [ref=e894]
+                - generic [ref=e896]: ORCL
+                - img [ref=e897]
+              - generic [ref=e899]:
+                - text: "-3.70%"
+                - img [ref=e900]
+            - button "EWJ -0.11%" [ref=e903] [cursor=pointer]:
+              - generic [ref=e904]:
+                - img [ref=e905]
+                - generic [ref=e907]: EWJ
+                - img [ref=e908]
+              - generic [ref=e910]:
+                - text: "-0.11%"
+                - img [ref=e911]
+            - button "SMSN -2.47%" [ref=e914] [cursor=pointer]:
+              - generic [ref=e915]:
+                - img [ref=e916]
+                - generic [ref=e918]: SMSN
+                - img [ref=e919]
+              - generic [ref=e921]:
+                - text: "-2.47%"
+                - img [ref=e922]
+            - button "RIVN -2.79%" [ref=e925] [cursor=pointer]:
+              - generic [ref=e926]:
+                - img [ref=e927]
+                - generic [ref=e929]: RIVN
+                - img [ref=e930]
+              - generic [ref=e932]:
+                - text: "-2.79%"
+                - img [ref=e933]
+            - button "BABA -2.51%" [ref=e936] [cursor=pointer]:
+              - generic [ref=e937]:
+                - img [ref=e938]
+                - generic [ref=e940]: BABA
+                - img [ref=e941]
+              - generic [ref=e943]:
+                - text: "-2.51%"
+                - img [ref=e944]
+            - button "PALLADIUM -2.69%" [ref=e947] [cursor=pointer]:
+              - generic [ref=e948]:
+                - img [ref=e949]
+                - generic [ref=e951]: PALLADIUM
+                - img [ref=e952]
+              - generic [ref=e954]:
+                - text: "-2.69%"
+                - img [ref=e955]
+            - button "COST +0.18%" [ref=e958] [cursor=pointer]:
+              - generic [ref=e959]:
+                - img [ref=e960]
+                - generic [ref=e962]: COST
+                - img [ref=e963]
+              - generic [ref=e965]:
+                - text: +0.18%
+                - img [ref=e966]
+            - button "URNM -2.04%" [ref=e969] [cursor=pointer]:
+              - generic [ref=e970]:
+                - img [ref=e971]
+                - generic [ref=e973]: URNM
+                - img [ref=e974]
+              - generic [ref=e976]:
+                - text: "-2.04%"
+                - img [ref=e977]
+            - button "HIMS -7.20%" [ref=e980] [cursor=pointer]:
+              - generic [ref=e981]:
+                - img [ref=e982]
+                - generic [ref=e984]: HIMS
+                - img [ref=e985]
+              - generic [ref=e987]:
+                - text: "-7.20%"
+                - img [ref=e988]
+            - button "HYUNDAI -1.86%" [ref=e991] [cursor=pointer]:
+              - generic [ref=e992]:
+                - img [ref=e993]
+                - generic [ref=e995]: HYUNDAI
+                - img [ref=e996]
+              - generic [ref=e998]:
+                - text: "-1.86%"
+                - img [ref=e999]
+            - button "DKNG +0.59%" [ref=e1002] [cursor=pointer]:
+              - generic [ref=e1003]:
+                - img [ref=e1004]
+                - generic [ref=e1006]: DKNG
+                - img [ref=e1007]
+              - generic [ref=e1009]:
+                - text: +0.59%
+                - img [ref=e1010]
+        - button "XYZ markets" [ref=e1013] [cursor=pointer]:
+          - img "XYZ markets" [ref=e1014]
+        - generic [ref=e1015]:
+          - button [ref=e1017] [cursor=pointer]:
+            - img [ref=e1018]
+          - button "Connect Wallet" [ref=e1020] [cursor=pointer]
+          - button [ref=e1022] [cursor=pointer]:
+            - img [ref=e1023]
+      - generic [ref=e1026]:
+        - generic [ref=e1027]:
+          - generic [ref=e1029]:
+            - generic [ref=e1030]:
+              - generic [ref=e1031]:
+                - button "SP500" [ref=e1033] [cursor=pointer]:
+                  - img "SP500" [ref=e1034]
+                - button "S&P500-USDC xyz 50x Standard & Poor's 500 Index" [ref=e1035] [cursor=pointer]:
+                  - generic [ref=e1037]:
+                    - generic [ref=e1038]:
+                      - paragraph [ref=e1039]: S&P500-USDC
+                      - generic [ref=e1041]: xyz
+                      - generic [ref=e1043]: 50x
+                    - paragraph [ref=e1044]: Standard & Poor's 500 Index
+              - generic [ref=e1046]:
+                - generic [ref=e1047]:
+                  - paragraph [ref=e1049]: Mark
+                  - paragraph [ref=e1050]: 6,494.1
+                - generic [ref=e1051]:
+                  - paragraph [ref=e1053]: Oracle
+                  - paragraph [ref=e1054]: 6,504.2
+                - generic [ref=e1055]:
+                  - paragraph [ref=e1056]: 24h Change
+                  - paragraph [ref=e1057]: "-36.900 / -0.56%"
+                - generic [ref=e1058]:
+                  - paragraph [ref=e1059]: 24h Volume
+                  - paragraph [ref=e1060]: $372.98m
+                - generic [ref=e1061]:
+                  - paragraph [ref=e1063]: Open Interest
+                  - paragraph [ref=e1065]: $251.83m
+                - generic [ref=e1066]:
+                  - paragraph [ref=e1068]: Funding / Countdown
+                  - paragraph [ref=e1070]:
+                    - text: "-0.0079%"
+                    - generic [ref=e1071]: / 00:23:15
+            - generic [ref=e1072]:
+              - generic [ref=e1074]:
+                - button "Asia/Shanghai" [ref=e1076] [cursor=pointer]:
+                  - paragraph [ref=e1077]: Asia/Shanghai
+                - iframe [ref=e1079]:
+                  - generic [active] [ref=f4e1]:
+                    - contentinfo:
+                      - paragraph: TradingView is interactive and has commands to use with a screen reader. The following is a list of keyboard commands available to interact on the platform
+                      - list:
+                        - listitem: Start using keyboard navigation mode. Press ⌥ + Z
+                        - listitem: Quick search. Press ⌘ + K
+                        - listitem: Change symbol. Start typing symbol name
+                        - listitem: Change interval. Press number or comma
+                        - listitem: Indicators, Metrics and Strategies. Press slash
+                        - listitem: Open layout. Press period
+                    - generic [ref=f4e2]:
+                      - toolbar [ref=f4e6]:
+                        - generic [ref=f4e10]:
+                          - button "1 hour" [ref=f4e13]:
+                            - generic [ref=f4e15]: 1h
+                          - button "Candles" [ref=f4e20]:
+                            - img [ref=f4e22]:
+                              - img [ref=f4e23]
+                          - button "Indicators & Strategies" [ref=f4e32]:
+                            - img [ref=f4e33]:
+                              - img [ref=f4e34]
+                            - generic [ref=f4e36]: Indicators
+                      - generic [ref=f4e38]:
+                        - toolbar [ref=f4e39]:
+                          - generic [ref=f4e43]:
+                            - generic [ref=f4e44]:
+                              - generic [ref=f4e47]:
+                                - button "Cross" [ref=f4e49]:
+                                  - img [ref=f4e50]:
+                                    - img [ref=f4e51]
+                                - button "Cursors" [pressed] [ref=f4e55]:
+                                  - img [ref=f4e56]:
+                                    - img [ref=f4e57]
+                              - generic [ref=f4e61]:
+                                - button "Trend Line" [ref=f4e63]:
+                                  - img [ref=f4e64]:
+                                    - img [ref=f4e65]
+                                - button "Trend line tools" [ref=f4e69]:
+                                  - img [ref=f4e70]:
+                                    - img [ref=f4e71]
+                              - generic [ref=f4e75]:
+                                - button "Fib Retracement" [ref=f4e77]:
+                                  - img [ref=f4e78]:
+                                    - img [ref=f4e79]
+                                - button "Gann and Fibonacci tools" [ref=f4e86]:
+                                  - img [ref=f4e87]:
+                                    - img [ref=f4e88]
+                              - generic [ref=f4e92]:
+                                - button "XABCD Pattern" [ref=f4e94]:
+                                  - img [ref=f4e95]:
+                                    - img [ref=f4e96]
+                                - button "Patterns" [ref=f4e100]:
+                                  - img [ref=f4e101]:
+                                    - img [ref=f4e102]
+                              - generic [ref=f4e106]:
+                                - button "Long Position" [ref=f4e108]:
+                                  - img [ref=f4e109]:
+                                    - img [ref=f4e110]
+                                - button "Forecasting and measurement tools" [ref=f4e113]:
+                                  - img [ref=f4e114]:
+                                    - img [ref=f4e115]
+                              - generic [ref=f4e119]:
+                                - button "Brush" [ref=f4e121]:
+                                  - img [ref=f4e122]:
+                                    - img [ref=f4e123]
+                                - button "Geometric shapes" [ref=f4e127]:
+                                  - img [ref=f4e128]:
+                                    - img [ref=f4e129]
+                              - generic [ref=f4e133]:
+                                - button "Text" [ref=f4e135]:
+                                  - img [ref=f4e136]:
+                                    - img [ref=f4e137]
+                                - button "Annotation tools" [ref=f4e139]:
+                                  - img [ref=f4e140]:
+                                    - img [ref=f4e141]
+                              - generic [ref=f4e144]:
+                                - button "Icon" [ref=f4e146]:
+                                  - img [ref=f4e147]:
+                                    - img [ref=f4e148]
+                                - button "Icons" [ref=f4e150]:
+                                  - img [ref=f4e151]:
+                                    - img [ref=f4e152]
+                            - generic [ref=f4e154]:
+                              - button "Measure" [ref=f4e155]:
+                                - img [ref=f4e156]:
+                                  - img [ref=f4e157]
+                              - button "Zoom In" [ref=f4e159]:
+                                - img [ref=f4e160]:
+                                  - img [ref=f4e161]
+                            - generic [ref=f4e166]:
+                              - generic [ref=f4e169]:
+                                - button "Magnet Mode snaps drawings placed near price bars to the closest OHLC value" [ref=f4e171]:
+                                  - img [ref=f4e172]:
+                                    - img [ref=f4e173]
+                                - button "Magnets" [ref=f4e177]:
+                                  - img [ref=f4e178]:
+                                    - img [ref=f4e179]
+                              - button "Keep drawing" [ref=f4e181]:
+                                - img [ref=f4e182]:
+                                  - img [ref=f4e183]
+                              - button "Lock all drawings" [ref=f4e185]:
+                                - img [ref=f4e186]:
+                                  - img [ref=f4e187]
+                              - generic [ref=f4e190]:
+                                - button "Hide all drawings" [ref=f4e192]:
+                                  - img [ref=f4e193]:
+                                    - img [ref=f4e194]
+                                - button "Hide options" [ref=f4e196]:
+                                  - img [ref=f4e197]:
+                                    - img [ref=f4e198]
+                            - generic [ref=f4e202]:
+                              - button "Remove 0 drawings" [ref=f4e204]:
+                                - img [ref=f4e205]:
+                                  - img [ref=f4e206]
+                              - button "Remove options" [ref=f4e208]:
+                                - img [ref=f4e209]:
+                                  - img [ref=f4e210]
+                        - button "Hide Drawings Toolbar" [ref=f4e214]:
+                          - img [ref=f4e215]
+                      - 'region "Chart #1" [ref=f4e222]':
+                        - generic [ref=f4e223]:
+                          - generic [ref=f4e226]:
+                            - generic:
+                              - generic:
+                                - toolbar:
+                                  - generic:
+                                    - generic [ref=f4e227]:
+                                      - generic [ref=f4e229]: xyz:SP500USD
+                                      - generic [ref=f4e230]:
+                                        - text: ·
+                                        - generic [ref=f4e231]: 1h
+                                      - generic [ref=f4e232]:
+                                        - text: ·
+                                        - generic [ref=f4e233]: Hyperliquid
+                                    - generic:
+                                      - generic:
+                                        - button "More":
+                                          - generic:
+                                            - img
+                                  - generic [ref=f4e235]:
+                                    - generic [ref=f4e236]:
+                                      - generic [ref=f4e237]: O
+                                      - generic [ref=f4e238]: 6,506.9
+                                    - generic [ref=f4e239]:
+                                      - generic [ref=f4e240]: H
+                                      - generic [ref=f4e241]: 6,512.4
+                                    - generic [ref=f4e242]:
+                                      - generic [ref=f4e243]: L
+                                      - generic [ref=f4e244]: 6,489.8
+                                    - generic [ref=f4e245]:
+                                      - generic [ref=f4e246]: C
+                                      - generic [ref=f4e247]: 6,493.2
+                                    - generic [ref=f4e249]: −14.2 (−0.22%)
+                            - generic "Chart for XYZ:SP500USD, 1 hour" [ref=f4e251]
+                          - generic [ref=f4e260]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - toolbar:
+                                    - generic:
+                                      - generic [ref=f4e263]: Volume
+                                      - generic:
+                                        - generic:
+                                          - button "More":
+                                            - generic:
+                                              - img
+                    - alert
+              - generic [ref=e1080]:
+                - generic [ref=e1082]:
+                  - button "Order Book" [ref=e1084] [cursor=pointer]
+                  - button "Trades" [ref=e1085] [cursor=pointer]
+                - generic [ref=e1086]:
+                  - generic [ref=e1087]:
+                    - button "0.1" [ref=e1088] [cursor=pointer]:
+                      - text: "0.1"
+                      - img
+                    - button "USDC" [ref=e1089] [cursor=pointer]:
+                      - text: USDC
+                      - img
+                  - generic [ref=e1090]:
+                    - paragraph [ref=e1091]: Price
+                    - paragraph [ref=e1092]: Size (USDC)
+                    - paragraph [ref=e1093]: Total (USDC)
+                  - generic [ref=e1095]:
+                    - generic [ref=e1096]:
+                      - button "$6,495.6 7,015 183,299" [ref=e1098] [cursor=pointer]:
+                        - generic [ref=e1100]: $6,495.6
+                        - paragraph [ref=e1102]: 7,015
+                        - paragraph [ref=e1103]: 183,299
+                      - button "$6,495.3 3,046 176,283" [ref=e1105] [cursor=pointer]:
+                        - generic [ref=e1107]: $6,495.3
+                        - paragraph [ref=e1109]: 3,046
+                        - paragraph [ref=e1110]: 176,283
+                      - button "$6,495.2 26 173,237" [ref=e1112] [cursor=pointer]:
+                        - generic [ref=e1114]: $6,495.2
+                        - paragraph [ref=e1116]: "26"
+                        - paragraph [ref=e1117]: 173,237
+                      - button "$6,495.1 4,748 173,211" [ref=e1119] [cursor=pointer]:
+                        - generic [ref=e1121]: $6,495.1
+                        - paragraph [ref=e1123]: 4,748
+                        - paragraph [ref=e1124]: 173,211
+                      - button "$6,494.8 201 168,463" [ref=e1126] [cursor=pointer]:
+                        - generic [ref=e1128]: $6,494.8
+                        - paragraph [ref=e1130]: "201"
+                        - paragraph [ref=e1131]: 168,463
+                      - button "$6,494.7 109,994 168,262" [ref=e1133] [cursor=pointer]:
+                        - generic [ref=e1135]: $6,494.7
+                        - paragraph [ref=e1137]: 109,994
+                        - paragraph [ref=e1138]: 168,262
+                      - button "$6,494.6 844 58,268" [ref=e1140] [cursor=pointer]:
+                        - generic [ref=e1142]: $6,494.6
+                        - paragraph [ref=e1144]: "844"
+                        - paragraph [ref=e1145]: 58,268
+                      - button "$6,494.5 20,295 57,423" [ref=e1147] [cursor=pointer]:
+                        - generic [ref=e1149]: $6,494.5
+                        - paragraph [ref=e1151]: 20,295
+                        - paragraph [ref=e1152]: 57,423
+                      - button "$6,494.4 14,736 37,128" [ref=e1154] [cursor=pointer]:
+                        - generic [ref=e1156]: $6,494.4
+                        - paragraph [ref=e1158]: 14,736
+                        - paragraph [ref=e1159]: 37,128
+                      - button "$6,494.3 19,996 22,392" [ref=e1161] [cursor=pointer]:
+                        - generic [ref=e1163]: $6,494.3
+                        - paragraph [ref=e1165]: 19,996
+                        - paragraph [ref=e1166]: 22,392
+                      - button "$6,493.8 2,396 2,396" [ref=e1168] [cursor=pointer]:
+                        - generic [ref=e1170]: $6,493.8
+                        - paragraph [ref=e1172]: 2,396
+                        - paragraph [ref=e1173]: 2,396
+                    - generic [ref=e1181]:
+                      - img [ref=e1182]
+                      - generic [ref=e1184]:
+                        - paragraph [ref=e1185]: "0.6"
+                        - paragraph [ref=e1186]: 0.009%
+                      - img [ref=e1187]
+                    - generic [ref=e1191]:
+                      - button "$6,493.2 2,351 2,351" [ref=e1193] [cursor=pointer]:
+                        - generic [ref=e1195]: $6,493.2
+                        - paragraph [ref=e1197]: 2,351
+                        - paragraph [ref=e1198]: 2,351
+                      - button "$6,493.1 19,655 22,005" [ref=e1200] [cursor=pointer]:
+                        - generic [ref=e1202]: $6,493.1
+                        - paragraph [ref=e1204]: 19,655
+                        - paragraph [ref=e1205]: 22,005
+                      - button "$6,492.8 19,991 41,996" [ref=e1207] [cursor=pointer]:
+                        - generic [ref=e1209]: $6,492.8
+                        - paragraph [ref=e1211]: 19,991
+                        - paragraph [ref=e1212]: 41,996
+                      - button "$6,492.7 52 42,048" [ref=e1214] [cursor=pointer]:
+                        - generic [ref=e1216]: $6,492.7
+                        - paragraph [ref=e1218]: "52"
+                        - paragraph [ref=e1219]: 42,048
+                      - button "$6,492.5 19 42,068" [ref=e1221] [cursor=pointer]:
+                        - generic [ref=e1223]: $6,492.5
+                        - paragraph [ref=e1225]: "19"
+                        - paragraph [ref=e1226]: 42,068
+                      - button "$6,492.4 1,273 43,340" [ref=e1228] [cursor=pointer]:
+                        - generic [ref=e1230]: $6,492.4
+                        - paragraph [ref=e1232]: 1,273
+                        - paragraph [ref=e1233]: 43,340
+                      - button "$6,492.2 99,986 143,327" [ref=e1235] [cursor=pointer]:
+                        - generic [ref=e1237]: $6,492.2
+                        - paragraph [ref=e1239]: 99,986
+                        - paragraph [ref=e1240]: 143,327
+                      - button "$6,492.1 18,061 161,388" [ref=e1242] [cursor=pointer]:
+                        - generic [ref=e1244]: $6,492.1
+                        - paragraph [ref=e1246]: 18,061
+                        - paragraph [ref=e1247]: 161,388
+                      - button "$6,492.0 32 161,420" [ref=e1249] [cursor=pointer]:
+                        - generic [ref=e1251]: $6,492.0
+                        - paragraph [ref=e1253]: "32"
+                        - paragraph [ref=e1254]: 161,420
+                      - button "$6,491.9 10,101 171,522" [ref=e1256] [cursor=pointer]:
+                        - generic [ref=e1258]: $6,491.9
+                        - paragraph [ref=e1260]: 10,101
+                        - paragraph [ref=e1261]: 171,522
+                      - button "$6,491.7 227 171,749" [ref=e1263] [cursor=pointer]:
+                        - generic [ref=e1265]: $6,491.7
+                        - paragraph [ref=e1267]: "227"
+                        - paragraph [ref=e1268]: 171,749
+          - generic [ref=e1269]:
+            - generic [ref=e1270]:
+              - tablist [ref=e1273]:
+                - tab "Balances" [selected] [ref=e1274] [cursor=pointer]:
+                  - generic [ref=e1275]: Balances
+                - tab "Positions" [ref=e1276] [cursor=pointer]:
+                  - generic [ref=e1277]: Positions
+                - tab "Open Orders" [ref=e1278] [cursor=pointer]:
+                  - generic [ref=e1279]: Open Orders
+                - tab "TWAP" [ref=e1280] [cursor=pointer]:
+                  - generic [ref=e1281]: TWAP
+                - tab "Trade History" [ref=e1282] [cursor=pointer]:
+                  - generic [ref=e1283]: Trade History
+                - tab "Funding History" [ref=e1284] [cursor=pointer]:
+                  - generic [ref=e1285]: Funding History
+                - tab "Order History" [ref=e1286] [cursor=pointer]:
+                  - generic [ref=e1287]: Order History
+                - tab "Account Activity" [ref=e1288] [cursor=pointer]:
+                  - generic [ref=e1289]: Account Activity
+              - generic [ref=e1292]:
+                - generic [ref=e1293] [cursor=pointer]:
+                  - checkbox [ref=e1294]
+                  - paragraph [ref=e1295]: Aggregate Balances
+                - generic [ref=e1296] [cursor=pointer]:
+                  - checkbox [ref=e1297]
+                  - paragraph [ref=e1298]: Hide Small Balances
+            - table [ref=e1301]:
+              - rowgroup [ref=e1302]:
+                - row "Asset Total Balance Available Balance Value (USD) PNL (ROE %) Actions" [ref=e1303]:
+                  - columnheader "Asset" [ref=e1304]:
+                    - generic [ref=e1305]: Asset
+                  - columnheader "Total Balance" [ref=e1306]:
+                    - generic [ref=e1307]: Total Balance
+                  - columnheader "Available Balance" [ref=e1308]:
+                    - generic [ref=e1310] [cursor=pointer]: Available Balance
+                  - columnheader "Value (USD)" [ref=e1311]:
+                    - generic [ref=e1312]: Value (USD)
+                  - columnheader "PNL (ROE %)" [ref=e1313]:
+                    - generic [ref=e1314]: PNL (ROE %)
+                  - columnheader "Actions" [ref=e1315]:
+                    - generic [ref=e1316]: Actions
+              - rowgroup [ref=e1317]:
+                - row "Connect wallet to view balances" [ref=e1318]:
+                  - cell "Connect wallet to view balances" [ref=e1319]
+        - generic [ref=e1320]:
+          - generic [ref=e1321]:
+            - generic [ref=e1322]:
+              - tablist [ref=e1324]:
+                - tab "Long" [selected] [ref=e1325] [cursor=pointer]:
+                  - generic [ref=e1326]: Long
+                - tab "Short" [ref=e1327] [cursor=pointer]:
+                  - generic [ref=e1328]: Short
+              - generic [ref=e1330]:
+                - generic [ref=e1331]:
+                  - generic [ref=e1334]:
+                    - button "Market" [ref=e1335] [cursor=pointer]
+                    - button "Limit" [ref=e1336] [cursor=pointer]
+                    - button "Pro" [ref=e1337] [cursor=pointer]:
+                      - generic [ref=e1338]: Pro
+                      - img
+                  - generic [ref=e1339]:
+                    - button "50x" [disabled]:
+                      - generic:
+                        - text: 50x
+                        - generic:
+                          - img
+                    - generic [ref=e1340]:
+                      - button "Isolated" [disabled]:
+                        - generic:
+                          - text: Isolated
+                          - generic:
+                            - img
+                  - generic [ref=e1341]:
+                    - generic [ref=e1342]:
+                      - generic [ref=e1344]: Available to Trade
+                      - generic [ref=e1345] [cursor=pointer]: 0.00 USDC
+                    - generic [ref=e1346]:
+                      - generic [ref=e1347]: Current Position
+                      - generic [ref=e1348]: 0 S&P500
+                - generic [ref=e1349]:
+                  - generic [ref=e1350]:
+                    - generic [ref=e1351]:
+                      - paragraph [ref=e1352]: Amount
+                      - button "MAX" [ref=e1354] [cursor=pointer]
+                      - textbox [ref=e1356]: "0"
+                      - paragraph [ref=e1358]: S&P500
+                      - img [ref=e1360] [cursor=pointer]
+                    - generic [ref=e1364]:
+                      - group "Slider" [ref=e1367]:
+                        - generic "Slider thumb 1" [ref=e1370]:
+                          - slider "Slider" [ref=e1372]: "0"
+                      - generic [ref=e1379]:
+                        - textbox "0" [ref=e1381]
+                        - img [ref=e1384]
+                    - generic [ref=e1388]:
+                      - generic [ref=e1390]:
+                        - checkbox "Reduce Only" [ref=e1391] [cursor=pointer]
+                        - generic [ref=e1394] [cursor=pointer]: Reduce Only
+                      - generic [ref=e1398]:
+                        - checkbox "Take Profit / Stop Loss" [ref=e1399] [cursor=pointer]
+                        - generic [ref=e1402] [cursor=pointer]: Take Profit / Stop Loss
+                  - button "Connect Wallet" [ref=e1403] [cursor=pointer]
+                - generic [ref=e1404]:
+                  - generic [ref=e1405]:
+                    - generic [ref=e1407] [cursor=pointer]: Liquidation Price
+                    - generic [ref=e1408]: $0,00
+                  - generic [ref=e1409]:
+                    - generic [ref=e1410]: Order Value
+                    - generic [ref=e1411]: $0.00
+                  - generic [ref=e1412]:
+                    - generic [ref=e1413]: Margin Required
+                    - generic [ref=e1414]: $0.00
+                  - generic [ref=e1416]:
+                    - generic [ref=e1418] [cursor=pointer]: Slippage
+                    - generic [ref=e1420]: "Est: 0.0000% / Max: 8.00%"
+                  - button "Fees 0.0090% / 0.0030%" [ref=e1421] [cursor=pointer]:
+                    - generic [ref=e1423]: Fees
+                    - generic [ref=e1425]:
+                      - paragraph [ref=e1426]: 0.0090% / 0.0030%
+                      - img [ref=e1428]
+            - generic [ref=e1432]:
+              - text: By submitting this trade, you agree to our
+              - link "Terms of Use" [ref=e1433] [cursor=pointer]:
+                - /url: https://trade.xyz/terms
+              - text: and attest that you are not trading from a restricted territory.
+          - generic [ref=e1435]:
+            - generic [ref=e1437]:
+              - paragraph [ref=e1440]: Account Value
+              - paragraph [ref=e1441]: $0.00
+            - generic [ref=e1442]:
+              - button "Deposit" [ref=e1443] [cursor=pointer]
+              - button "Transfer" [disabled]
+              - button "Withdraw" [disabled]
+            - generic [ref=e1444]:
+              - generic [ref=e1445]:
+                - paragraph [ref=e1446]: Spot
+                - paragraph [ref=e1447]: "--"
+              - generic [ref=e1448]:
+                - paragraph [ref=e1449]: Perps
+                - img "Perps" [ref=e1450]
+                - paragraph [ref=e1451]: "--"
+              - generic [ref=e1452]:
+                - generic [ref=e1453]:
+                  - paragraph [ref=e1454]: Perps
+                  - img "Perps" [ref=e1455]
+                - paragraph [ref=e1456]: "--"
+              - generic [ref=e1457]:
+                - paragraph [ref=e1458]: Vaults Account
+                - paragraph [ref=e1459]: "--"
+              - generic [ref=e1460]:
+                - paragraph [ref=e1461]: Earn Balance
+                - paragraph [ref=e1462]: "--"
+              - generic [ref=e1463]:
+                - paragraph [ref=e1464]: Staking Account
+                - paragraph [ref=e1465]: "--"
+      - contentinfo [ref=e1466]:
+        - generic [ref=e1467]:
+          - link "Mainnet" [ref=e1469] [cursor=pointer]:
+            - /url: https://hyperliquid.statuspage.io/
+            - text: Mainnet
+          - paragraph [ref=e1474]: WebSockets
+          - paragraph [ref=e1477]: Wallet Disconnected
+          - generic [ref=e1479]:
+            - img [ref=e1480]
+            - paragraph [ref=e1482]: 999fe
+        - generic [ref=e1483]:
+          - generic [ref=e1484]:
+            - generic [ref=e1485]: ⌘K
+            - generic [ref=e1486]: List Markets
+          - generic [ref=e1487]: "|"
+          - generic [ref=e1488]:
+            - generic [ref=e1489]: ⌘/
+            - generic [ref=e1490]: List Shortcuts (hold)
+        - generic [ref=e1491]:
+          - button "Support" [disabled] [ref=e1493]
+          - link "Docs" [ref=e1495] [cursor=pointer]:
+            - /url: https://docs.trade.xyz
+          - link "Terms" [ref=e1497] [cursor=pointer]:
+            - /url: https://trade.xyz/terms
+          - link "Privacy" [ref=e1499] [cursor=pointer]:
+            - /url: https://trade.xyz/privacyPolicy
+    - generic:
+      - region "Notifications alt+T"
+  - alert [ref=e1500]: trade.xyz

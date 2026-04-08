@@ -138,7 +138,7 @@ python arbitrage.py --ticker BTC --size 0.002 --max-position 0.1 --long-threshol
 python arbitrage.py --ticker ETH --size 0.01 --long-threshold 10 --short-threshold 10 --max-position 0.1 --fill-timeout 5
 
 # 交易 BTC，限制最大持仓为 0.1 BTC
-python arbitrage.py --ticker BTC --size 0.002 --long-threshold 1 --short-threshold 20 --max-position 0.1
+python arbitrage.py --ticker BTC --size 0.005 --long-threshold 20 --short-threshold 20 --max-position 0.05
 ```
 
 ## 项目结构
@@ -173,6 +173,15 @@ cross-exchange-arbitrage/
    - 在 Lighter 上执行市价单完成对冲
 5. **仓位管理**：实时跟踪仓位，确保不超过最大持仓限制
 6. **风险控制**：监控订单成交状态，超时未成交则取消订单
+
+## 开发原则
+
+- 优先使用基于当前页面真实逻辑的最小实现。
+- 禁止预防式通用化；不要为了“可能以后会用到”提前抽象兼容层、公共框架或扩展点。
+- 任何兼容性分支都必须由已复现的问题驱动，并在代码中能说明它解决的具体失败案例。
+- 这条原则适用于所有代码，不仅仅是 UI 自动化；业务逻辑、数据结构、接口封装、配置设计和工具层都禁止随意通用化扩展。
+
+默认先写贴合当前问题和当前业务路径的最短实现；只有在简单实现已经被明确证明失败后，才允许增加额外兼容分支、抽象层或扩展点。
 
 ## 注意事项
 

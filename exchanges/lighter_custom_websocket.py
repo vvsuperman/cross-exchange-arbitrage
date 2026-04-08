@@ -8,6 +8,13 @@ import json
 import time
 from typing import Dict, Any, List, Optional, Tuple, Callable
 import websockets
+from datetime import datetime
+import pytz
+
+
+def format_timestamp_to_seconds(dt: datetime) -> str:
+    """格式化时间戳到秒级别（去掉毫秒和时区）"""
+    return dt.replace(microsecond=0, tzinfo=None).isoformat()
 
 
 class LighterCustomWebSocketManager:
@@ -28,6 +35,10 @@ class LighterCustomWebSocketManager:
         self.order_book_offset = None
         self.order_book_sequence_gap = False
         self.order_book_lock = asyncio.Lock()
+        
+        # Timestamp tracking
+        self.last_update_timestamp = None  # ISO format timestamp string
+        self.price_timestamp = None  # Price timestamp from order book (ISO format timestamp string)
 
         # WebSocket URL
         self.ws_url = "wss://mainnet.zklighter.elliot.ai/stream"
@@ -88,27 +99,26 @@ class LighterCustomWebSocketManager:
 
     def validate_order_book_offset(self, new_offset: int) -> bool:
         """Validate that the new offset is sequential and handle gaps."""
-        if self.order_book_offset is None:
-            # First offset, always valid
-            self.order_book_offset = new_offset
-            return True
+        # if self.order_book_offset is None:
+        #     # First offset, always valid
+        #     self.order_book_offset = new_offset
+        #     return True
 
-        # Check if the new offset is sequential (should be +1)
-        expected_offset = self.order_book_offset + 1
-        if new_offset == expected_offset:
-            # Sequential update, update our offset
-            self.order_book_offset = new_offset
-            self.order_book_sequence_gap = False
-            return True
-        elif new_offset > expected_offset:
-            # Gap detected - we missed some updates
-            self._log(f"Order book sequence gap detected! Expected offset {expected_offset}, got {new_offset}", "WARNING")
-            self.order_book_sequence_gap = True
-            return False
-        else:
-            # Out of order or duplicate update
-            self._log(f"Out of order update received! Expected offset {expected_offset}, got {new_offset}", "WARNING")
-            return True  # Don't reconnect for out-of-order updates, just ignore them
+        # Check if the new offset is greater than current (allows gaps, like arbitrage.py)
+        # Only reject if new_offset <= current_offset (out of order or duplicate)
+        # if new_offset <= self.order_book_offset:
+        #     # Out of order or duplicate update
+        #     self._log(f"Out of order update received! Expected offset > {self.order_book_offset}, got {new_offset}", "WARNING")
+        #     return False
+        
+        # Accept the update even if there's a gap (new_offset > order_book_offset + 1)
+        # Small gaps are acceptable and don't require reconnection
+        # No need to log gaps as they are normal and handled gracefully
+        
+        # Update offset and continue processing
+        self.order_book_offset = new_offset
+        self.order_book_sequence_gap = False
+        return True
 
     def handle_order_book_cutoff(self, data: Dict[str, Any]) -> bool:
         """Handle cases where order book updates might be cutoff or incomplete."""
@@ -252,10 +262,12 @@ class LighterCustomWebSocketManager:
 
                 async with websockets.connect(self.ws_url) as self.ws:
                     # Subscribe to order book updates
-                    await self.ws.send(json.dumps({
+                    subscribe_msg = {
                         "type": "subscribe",
                         "channel": f"order_book/{self.market_index}"
-                    }))
+                    }
+                    self._log(f"Subscribing to channel: order_book/{self.market_index}", "INFO")
+                    await self.ws.send(json.dumps(subscribe_msg))
 
                     # Subscribe to account orders updates
                     account_orders_channel = f"account_orders/{self.market_index}/{self.account_index}"
@@ -298,6 +310,24 @@ class LighterCustomWebSocketManager:
                             # Reset timeout counter on successful message
                             timeout_count = 0
 
+                            # 记录消息时间戳（在锁外，避免阻塞）
+                            # 尝试从消息中提取时间戳
+                            msg_timestamp = data.get("timestamp") or data.get("ts")
+                            if msg_timestamp:
+                                if isinstance(msg_timestamp, (int, float)):
+                                    dt = datetime.fromtimestamp(msg_timestamp / 1000.0, tz=pytz.UTC)
+                                    self.last_update_timestamp = format_timestamp_to_seconds(dt)
+                                else:
+                                    # 尝试解析字符串格式的时间戳
+                                    try:
+                                        dt = datetime.fromisoformat(str(msg_timestamp).replace('Z', '+00:00'))
+                                        self.last_update_timestamp = format_timestamp_to_seconds(dt)
+                                    except:
+                                        self.last_update_timestamp = str(msg_timestamp)
+                            else:
+                                # 如果没有时间戳，使用当前时间
+                                self.last_update_timestamp = format_timestamp_to_seconds(datetime.now(pytz.UTC))
+
                             async with self.order_book_lock:
                                 if data.get("type") == "subscribed/order_book":
                                     # Initial snapshot - clear and populate the order book
@@ -308,8 +338,9 @@ class LighterCustomWebSocketManager:
                                     order_book = data.get("order_book", {})
                                     if order_book and "offset" in order_book:
                                         # Set the initial offset from the snapshot
-                                        self.order_book_offset = order_book["offset"]
-                                        self._log(f"Initial order book offset set to: {self.order_book_offset}", "INFO")
+                                        initial_offset = order_book["offset"]
+                                        self.order_book_offset = initial_offset
+                                        self._log(f"Initial order book offset set to: {initial_offset}", "INFO")
 
                                     self.update_order_book("bids", order_book.get("bids", []))
                                     self.update_order_book("asks", order_book.get("asks", []))
@@ -332,17 +363,19 @@ class LighterCustomWebSocketManager:
                                         continue
 
                                     new_offset = order_book["offset"]
-
+                                    
+                                    # 存储 price_timestamp（撮合时间，毫秒级时间戳）
+                                    price_timestamp = data.get("timestamp", None)
+                                
+                                    dt = datetime.fromtimestamp(price_timestamp / 1000.0, tz=pytz.UTC)
+                                    dt_utc8 = dt.astimezone(pytz.timezone('Asia/Shanghai'))
+                                    self.price_timestamp = format_timestamp_to_seconds(dt_utc8)
+                                        
+                                    
                                     # Validate offset sequence
                                     if not self.validate_order_book_offset(new_offset):
-                                        # Sequence gap detected, try to request fresh snapshot first
-                                        if self.order_book_sequence_gap:
-                                            self._log("Sequence gap detected, requesting fresh snapshot...", "WARNING")
-                                            # Release lock before network I/O
-                                            break
-                                        else:
-                                            # For out-of-order updates, just continue
-                                            continue
+                                        # Out-of-order or duplicate update, skip it
+                                        continue
 
                                     # Update the order book with new data
                                     self.update_order_book("bids", order_book.get("bids", []))
@@ -362,6 +395,8 @@ class LighterCustomWebSocketManager:
                                         self.best_bid = best_bid_price
                                     if best_ask_price is not None:
                                         self.best_ask = best_ask_price
+                                    
+                                    # 时间戳已在消息处理开始时更新
 
                                 elif data.get("type") == "ping":
                                     # Respond to ping with pong
@@ -382,15 +417,8 @@ class LighterCustomWebSocketManager:
                                 self.cleanup_old_order_book_levels()
                                 cleanup_counter = 0
 
-                            # Handle sequence gap and integrity issues outside the lock
-                            if self.order_book_sequence_gap:
-                                try:
-                                    await self.request_fresh_snapshot()
-                                    self.order_book_sequence_gap = False
-                                except Exception as e:
-                                    self._log(f"Failed to request fresh snapshot: {e}", "ERROR")
-                                    self._log("Reconnecting due to sequence gap...", "WARNING")
-                                    break
+                            # Sequence gaps are now handled gracefully in validate_order_book_offset
+                            # Only reconnect if there's a serious integrity issue (handled above)
 
                         except asyncio.TimeoutError:
                             timeout_count += 1

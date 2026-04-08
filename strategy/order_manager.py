@@ -7,15 +7,25 @@ from typing import Optional
 
 from edgex_sdk import Client, OrderSide, CancelOrderParams, GetOrderBookDepthParams
 from lighter.signer_client import SignerClient
+from monitor.redis_client import RedisPriceClient
 
 
 class OrderManager:
     """Manages order placement and monitoring for both exchanges."""
 
-    def __init__(self, order_book_manager, logger: logging.Logger):
+    def __init__(self, order_book_manager, logger: logging.Logger, ticker: Optional[str] = None):
         """Initialize order manager."""
         self.order_book_manager = order_book_manager
         self.logger = logger
+        self.ticker = ticker
+
+        # Redis client for price data
+        try:
+            # self.redis_client = RedisPriceClient(host='172.18.58.232')
+            self.redis_client = RedisPriceClient()
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize Redis client: {e}. Will fallback to order_book_manager.")
+            self.redis_client = None
 
         # EdgeX client and config
         self.edgex_client: Optional[Client] = None
@@ -66,6 +76,36 @@ class OrderManager:
         """Set callback functions."""
         self.on_order_filled = on_order_filled
 
+    def reset_edgex_order_state(self):
+        """Reset EdgeX order state after failure or cancellation."""
+        self.edgex_order_status = None
+        self.edgex_client_order_id = ''
+
+    def reset_lighter_order_state(self):
+        """Reset Lighter order state after failure or completion."""
+        self.lighter_order_filled = False
+        self.lighter_order_price = None
+        self.lighter_order_side = None
+        self.lighter_order_size = None
+        self.waiting_for_lighter_fill = False
+        self.current_lighter_side = None
+        self.current_lighter_quantity = None
+        self.current_lighter_price = None
+        self.order_execution_complete = False
+
+    def _refresh_lighter_nonce(self) -> None:
+        """Force refresh Lighter nonce from API."""
+        try:
+            if not self.lighter_client:
+                return
+            api_key_index = getattr(self.lighter_client, "api_key_index", None)
+            if api_key_index is None:
+                return
+            self.lighter_client.nonce_manager.hard_refresh_nonce(api_key_index)
+            self.logger.warning("Refreshed Lighter nonce from API")
+        except Exception as e:
+            self.logger.warning(f"Failed to refresh Lighter nonce: {e}")
+
     def round_to_tick(self, price: Decimal) -> Decimal:
         """Round price to tick size."""
         if self.edgex_tick_size is None:
@@ -73,30 +113,69 @@ class OrderManager:
         return (price / self.edgex_tick_size).quantize(Decimal('1')) * self.edgex_tick_size
 
     async def fetch_edgex_bbo_prices(self) -> tuple[Decimal, Decimal]:
-        """Fetch best bid/ask prices from EdgeX using websocket data."""
-        # Use WebSocket data if available
-        edgex_bid, edgex_ask = self.order_book_manager.get_edgex_bbo()
-        if (self.order_book_manager.edgex_order_book_ready and
-                edgex_bid and edgex_ask and edgex_bid > 0 and edgex_ask > 0 and edgex_bid < edgex_ask):
-            return edgex_bid, edgex_ask
+        """Fetch best bid/ask prices from EdgeX using Redis data."""
+        # Try to get from Redis first
+        if self.redis_client and self.ticker:
+            try:
+                bbo_data = self.redis_client.get_latest_bbo('edgex', self.ticker)
+                if bbo_data and bbo_data.get('best_bid') and bbo_data.get('best_ask'):
+                    best_bid = bbo_data['best_bid']
+                    best_ask = bbo_data['best_ask']
+                    if best_bid > 0 and best_ask > 0 and best_bid < best_ask:
+                        return best_bid, best_ask
+            except Exception as e:
+                self.logger.exception(f"Failed to get EdgeX BBO from Redis: {e}")
 
-        # Fallback to REST API if websocket data is not available
-        self.logger.warning("WebSocket BBO data not available, falling back to REST API")
+    async def fetch_lighter_bbo_prices(self) -> tuple[Decimal, Decimal]:
+        """Fetch best bid/ask prices from Lighter using Redis data."""
+         
+        if self.redis_client and self.ticker:
+            try:
+                bbo_data = self.redis_client.get_latest_bbo('lighter', self.ticker)
+                if bbo_data and bbo_data.get('best_bid') and bbo_data.get('best_ask'):
+                    best_bid = bbo_data['best_bid']
+                    best_ask = bbo_data['best_ask']
+                    if best_bid > 0 and best_ask > 0 and best_bid < best_ask:
+                        return best_bid, best_ask
+            except Exception as e:
+                self.logger.exception(f"Failed to get Lighter BBO from Redis: {e}")
+        return None, None
+
+    async def place_edgex_market_order(self, side: str, quantity: Decimal,
+                                       client_order_id: Optional[str] = None) -> Optional[str]:
+        """Place a market order on EdgeX. Uses client_order_id if provided."""
         if not self.edgex_client:
             raise Exception("EdgeX client not initialized")
 
-        depth_params = GetOrderBookDepthParams(contract_id=self.edgex_contract_id, limit=15)
-        order_book = await self.edgex_client.quote.get_order_book_depth(depth_params)
-        order_book_data = order_book['data']
+        coid = client_order_id if client_order_id else str(int(time.time() * 1000))
+        self.edgex_client_order_id = coid
 
-        order_book_entry = order_book_data[0]
-        bids = order_book_entry.get('bids', [])
-        asks = order_book_entry.get('asks', [])
+        # Convert side string to OrderSide enum
+        if side.lower() == 'buy':
+            order_side = OrderSide.BUY
+        else:
+            order_side = OrderSide.SELL
+        try:
+            order_result = await self.edgex_client.create_market_order(
+                contract_id=self.edgex_contract_id,
+                size=str(quantity),
+                side=order_side,
+                client_order_id=str(coid)
+            )
 
-        best_bid = Decimal(bids[0]['price']) if bids and len(bids) > 0 else Decimal('0')
-        best_ask = Decimal(asks[0]['price']) if asks and len(asks) > 0 else Decimal('0')
+            if not order_result or 'data' not in order_result:
+                raise Exception("Failed to place order")
 
-        return best_bid, best_ask
+            order_id = order_result['data'].get('orderId')
+            if not order_id:
+                raise Exception("No order ID in response")
+
+            return order_id
+
+        except Exception as e:
+            self.logger.exception(f"❌ Error placing EdgeX market order: {e}")
+            raise
+
 
     async def place_bbo_order(self, side: str, quantity: Decimal) -> str:
         """Place a BBO order on EdgeX."""
@@ -108,6 +187,7 @@ class OrderManager:
         else:
             order_price = best_bid + self.edgex_tick_size
             order_side = OrderSide.SELL
+        
 
         self.edgex_client_order_id = str(int(time.time() * 1000))
         order_result = await self.edgex_client.create_limit_order(
@@ -128,38 +208,35 @@ class OrderManager:
 
         return order_id
 
-    async def place_edgex_post_only_order(self, side: str, quantity: Decimal, stop_flag) -> bool:
-        """Place a post-only order on EdgeX."""
+    async def place_edgex_order_async(self, side: str, quantity: Decimal) -> Optional[str]:
+        """Place a post-only order on EdgeX asynchronously."""
         if not self.edgex_client:
             raise Exception("EdgeX client not initialized")
 
-        self.edgex_order_status = None
+        self.edgex_order_status = 'PENDING' # Initialize status
         self.logger.info(f"[OPEN] [EdgeX] [{side}] Placing EdgeX POST-ONLY order")
-        order_id = await self.place_bbo_order(side, quantity)
+        
+        try:
+            order_id = await self.place_bbo_order(side, quantity)
+            return order_id
+        except Exception as e:
+            self.logger.error(f"❌ Error placing EdgeX order: {e}")
+            # Reset all EdgeX order state on failure
+            self.reset_edgex_order_state()
+            return None
 
-        start_time = time.time()
-        while not stop_flag:
-            if self.edgex_order_status == 'CANCELED':
-                return False
-            elif self.edgex_order_status in ['NEW', 'OPEN', 'PENDING', 'CANCELING', 'PARTIALLY_FILLED']:
-                await asyncio.sleep(0.5)
-                if time.time() - start_time > 5:
-                    try:
-                        cancel_params = CancelOrderParams(order_id=order_id)
-                        cancel_result = await self.edgex_client.cancel_order(cancel_params)
-                        if not cancel_result or 'data' not in cancel_result:
-                            self.logger.error("❌ Error canceling EdgeX order")
-                    except Exception as e:
-                        self.logger.error(f"❌ Error canceling EdgeX order: {e}")
-            elif self.edgex_order_status == 'FILLED':
-                break
-            else:
-                if self.edgex_order_status is not None:
-                    self.logger.error(f"❌ Unknown EdgeX order status: {self.edgex_order_status}")
-                    return False
-                else:
-                    await asyncio.sleep(0.5)
-        return True
+    async def cancel_edgex_order(self, order_id: str):
+        """Cancel an EdgeX order."""
+        if not self.edgex_client:
+            return
+
+        try:
+            cancel_params = CancelOrderParams(order_id=order_id)
+            cancel_result = await self.edgex_client.cancel_order(cancel_params)
+            if not cancel_result or 'data' not in cancel_result:
+                self.logger.error("❌ Error canceling EdgeX order")
+        except Exception as e:
+            self.logger.error(f"❌ Error canceling EdgeX order: {e}")
 
     def handle_edgex_order_update(self, order_data: dict):
         """Handle EdgeX order update."""
@@ -181,72 +258,109 @@ class OrderManager:
         """Update EdgeX order status."""
         self.edgex_order_status = status
 
-    async def place_lighter_market_order(self, lighter_side: str, quantity: Decimal,
-                                         price: Decimal, stop_flag) -> Optional[str]:
-        """Place a market order on Lighter."""
+    async def place_lighter_market_order(self, lighter_side: str, quantity: Decimal, client_order_id: Optional[str] = None) -> Optional[str]:
+        """Place a market order on Lighter.
+        
+        Returns:
+            Transaction hash if successful, None if failed.
+            
+        Raises:
+            Exception: If order placement fails or times out.
+        """
         if not self.lighter_client:
             raise Exception("Lighter client not initialized")
+        
+        start_total = time.perf_counter()
 
-        best_bid, best_ask = self.order_book_manager.get_lighter_best_levels()
-        if not best_bid or not best_ask:
-            raise Exception("Lighter order book not ready")
+        # Try to get from Redis first
+        best_bid_price = None
+        best_ask_price = None
+        
+        if self.redis_client and self.ticker:
+            try:
+                bbo_data = self.redis_client.get_latest_bbo('lighter', self.ticker)
+                if bbo_data and bbo_data.get('best_bid') and bbo_data.get('best_ask'):
+                    best_bid_price = bbo_data['best_bid']
+                    best_ask_price = bbo_data['best_ask']
+            except Exception as e:
+                self.logger.exception(f"Failed to get Lighter BBO from Redis: {e}")
+
+        # Fallback to order_book_manager if Redis data not available
+        if best_bid_price is None or best_ask_price is None:
+            best_levels = self.order_book_manager.get_lighter_best_levels()
+            if not best_levels or not best_levels[0] or not best_levels[1]:
+                raise Exception("Lighter order book not ready")
+            best_bid_price = best_levels[0][0]
+            best_ask_price = best_levels[1][0]
 
         if lighter_side.lower() == 'buy':
             order_type = "CLOSE"
             is_ask = False
-            price = best_ask[0] * Decimal('1.002')
+            price = best_ask_price * Decimal('1.05')
         else:
             order_type = "OPEN"
             is_ask = True
-            price = best_bid[0] * Decimal('0.998')
+            price = best_bid_price * Decimal('0.95')
 
+        # Initialize order state
         self.lighter_order_filled = False
         self.lighter_order_price = price
         self.lighter_order_side = lighter_side
         self.lighter_order_size = quantity
 
+
         try:
-            client_order_index = int(time.time() * 1000)
-            tx_info, error = self.lighter_client.sign_create_order(
+            client_order_index = client_order_id if client_order_id else str(int(time.time() * 1000))
+            # tx_info, error = self.lighter_client.sign_create_order(
+
+            tx, tx_hash, error = await self.lighter_client.create_market_order(
                 market_index=self.lighter_market_index,
-                client_order_index=client_order_index,
+                client_order_index=int(client_order_index),
                 base_amount=int(quantity * self.base_amount_multiplier),
-                price=int(price * self.price_multiplier),
-                is_ask=is_ask,
-                order_type=self.lighter_client.ORDER_TYPE_LIMIT,
-                time_in_force=self.lighter_client.ORDER_TIME_IN_FORCE_GOOD_TILL_TIME,
-                reduce_only=False,
-                trigger_price=0,
+                avg_execution_price=int(price * self.price_multiplier),
+                is_ask=is_ask   
             )
+
+            if error is not None and "invalid nonce" in str(error).lower():
+                self.logger.warning("Lighter invalid nonce detected, retrying once")
+                self._refresh_lighter_nonce()
+                tx, tx_hash, error = await self.lighter_client.create_market_order(
+                    market_index=self.lighter_market_index,
+                    client_order_index=int(client_order_index),
+                    base_amount=int(quantity * self.base_amount_multiplier),
+                    avg_execution_price=int(price * self.price_multiplier),
+                    is_ask=is_ask   
+                )
             if error is not None:
                 raise Exception(f"Sign error: {error}")
 
-            tx_hash = await self.lighter_client.send_tx(
-                tx_type=self.lighter_client.TX_TYPE_CREATE_ORDER,
-                tx_info=tx_info
-            )
-
-            self.logger.info(f"[{client_order_index}] [{order_type}] [Lighter] [OPEN]: {quantity}")
-
-            await self.monitor_lighter_order(client_order_index, stop_flag)
-
-            return tx_hash
+       
+            return client_order_index
+      
         except Exception as e:
-            self.logger.error(f"❌ Error placing Lighter order: {e}")
-            return None
+            self.logger.exception(f"❌ Error placing Lighter order: {e}")
+            # Reset state on error
+            self.reset_lighter_order_state()
+            raise
 
     async def monitor_lighter_order(self, client_order_index: int, stop_flag):
-        """Monitor Lighter order and wait for fill."""
+        """Monitor Lighter order and wait for fill.
+        
+        Raises:
+            TimeoutError: If order does not fill within 30 seconds.
+        """
         start_time = time.time()
         while not self.lighter_order_filled and not stop_flag:
             if time.time() - start_time > 30:
+                elapsed_time = time.time() - start_time
                 self.logger.error(
-                    f"❌ Timeout waiting for Lighter order fill after {time.time() - start_time:.1f}s")
-                self.logger.warning("⚠️ Using fallback - marking order as filled to continue trading")
-                self.lighter_order_filled = True
-                self.waiting_for_lighter_fill = False
-                self.order_execution_complete = True
-                break
+                    f"❌ Timeout waiting for Lighter order fill after {elapsed_time:.1f}s")
+                # Reset state before raising exception
+                self.reset_lighter_order_state()
+                raise TimeoutError(
+                    f"Lighter order {client_order_index} did not fill within 30 seconds. "
+                    "This may indicate a position mismatch issue."
+                )
 
             await asyncio.sleep(0.1)
 

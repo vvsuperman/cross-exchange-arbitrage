@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni / trade.xyz 价差监控</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f3f6fb;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .chart-box {
+            height: 420px;
+            margin-top: 16px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .stat-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 15px;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .error {
+            color: #b91c1c;
+            margin-top: 12px;
+        }
+        .hint {
+            color: #64748b;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h1>Omni / trade.xyz 价差监控</h1>
+            <p class="hint">价差1: trade.xyz bid - omni ask。价差2: omni bid - trade.xyz ask。</p>
+            <div class="controls">
+                <div>
+                    <label for="ticker">标的</label>
+                    <select id="ticker">
+                        {% for t in tickers %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="start_time">开始时间</label>
+                    <input type="datetime-local" id="start_time" value="{{ default_start }}">
+                </div>
+                <div>
+                    <label for="end_time">结束时间</label>
+                    <input type="datetime-local" id="end_time" value="{{ default_end }}">
+                </div>
+                <div>
+                    <button onclick="loadData()">加载数据</button>
+                </div>
+            </div>
+            <div id="error" class="error"></div>
+        </div>
+
+        <div class="panel">
+            <h2>价差曲线</h2>
+            <div class="chart-box"><canvas id="spreadChart"></canvas></div>
+        </div>
+
+        <div class="panel">
+            <h2>买一卖一价格</h2>
+            <div class="chart-box"><canvas id="priceChart"></canvas></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>价差1统计</h3>
+                <div id="spread1Stats"></div>
+            </div>
+            <div class="stat-card">
+                <h3>价差2统计</h3>
+                <div id="spread2Stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let spreadChart = null;
+        let priceChart = null;
+
+        function formatStats(containerId, stats) {
+            const container = document.getElementById(containerId);
+            if (!stats) {
+                container.innerHTML = '<div class="hint">暂无数据</div>';
+                return;
+            }
+            container.innerHTML = [
+                ['均值', `${stats.mean.toFixed(4)}%`],
+                ['中位数', `${stats.median.toFixed(4)}%`],
+                ['最大值', `${stats.max.toFixed(4)}%`],
+                ['最小值', `${stats.min.toFixed(4)}%`],
+                ['标准差', `${stats.std.toFixed(4)}%`],
+            ].map(([label, value]) => (
+                `<div class="stat-item"><span>${label}</span><strong>${value}</strong></div>`
+            )).join('');
+        }
+
+        async function loadData() {
+            const errorBox = document.getElementById('error');
+            errorBox.textContent = '';
+
+            const ticker = document.getElementById('ticker').value;
+            const startTime = document.getElementById('start_time').value;
+            const endTime = document.getElementById('end_time').value;
+
+            const params = new URLSearchParams({
+                ticker,
+                start_time: startTime,
+                end_time: endTime,
+            });
+
+            const response = await fetch(`/api/spread_data?${params.toString()}`);
+            const data = await response.json();
+            if (!data.success) {
+                errorBox.textContent = data.message || '加载失败';
+                return;
+            }
+
+            renderSpreadChart(data);
+            renderPriceChart(data);
+            formatStats('spread1Stats', data.spread_1_stats);
+            formatStats('spread2Stats', data.spread_2_stats);
+        }
+
+        function renderSpreadChart(data) {
+            const ctx = document.getElementById('spreadChart');
+            if (spreadChart) spreadChart.destroy();
+
+            spreadChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.timestamps,
+                    datasets: [
+                        {
+                            label: '价差1: trade.xyz bid - omni ask',
+                            data: data.spread_1.map(value => value == null ? null : value * 100),
+                            borderColor: '#2563eb',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        },
+                        {
+                            label: '价差2: omni bid - trade.xyz ask',
+                            data: data.spread_2.map(value => value == null ? null : value * 100),
+                            borderColor: '#dc2626',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { type: 'time', time: { tooltipFormat: 'yyyy-MM-dd HH:mm:ss' } },
+                        y: { title: { display: true, text: 'Spread %' } }
+                    }
+                }
+            });
+        }
+
+        function renderPriceChart(data) {
+            const ctx = document.getElementById('priceChart');
+            if (priceChart) priceChart.destroy();
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Omni Bid',
+                            data: data.exchange1_timestamps.map((ts, i) => ({ x: ts, y: data.exchange1_bid[i] })),
+                            borderColor: '#0f766e',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        },
+                        {
+                            label: 'Omni Ask',
+                            data: data.exchange1_timestamps.map((ts, i) => ({ x: ts, y: data.exchange1_ask[i] })),
+                            borderColor: '#14b8a6',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        },
+                        {
+                            label: 'trade.xyz Bid',
+                            data: data.exchange2_timestamps.map((ts, i) => ({ x: ts, y: data.exchange2_bid[i] })),
+                            borderColor: '#7c3aed',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        },
+                        {
+                            label: 'trade.xyz Ask',
+                            data: data.exchange2_timestamps.map((ts, i) => ({ x: ts, y: data.exchange2_ask[i] })),
+                            borderColor: '#a855f7',
+                            pointRadius: 0,
+                            tension: 0.15,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { type: 'time', time: { tooltipFormat: 'yyyy-MM-dd HH:mm:ss' } },
+                        y: { title: { display: true, text: 'Price' } }
+                    }
+                }
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

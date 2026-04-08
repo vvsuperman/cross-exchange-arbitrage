@@ -10,6 +10,16 @@ from typing import Callable, Optional
 from edgex_sdk import WebSocketManager
 
 
+def edgex_public_quote_ws_url(ws_base: str) -> str:
+    """Match edgex_sdk WebSocketManager: {base}/api/v1/public/ws (root host alone returns HTTP 404)."""
+    b = (ws_base or "").strip().rstrip("/")
+    if not b:
+        b = "wss://quote.edgex.exchange"
+    if b.endswith("/api/v1/public/ws"):
+        return b
+    return f"{b}/api/v1/public/ws"
+
+
 class WebSocketManagerWrapper:
     """Manages WebSocket connections for both exchanges."""
 
@@ -22,6 +32,10 @@ class WebSocketManagerWrapper:
         # EdgeX WebSocket
         self.edgex_ws_manager: Optional[WebSocketManager] = None
         self.edgex_contract_id: Optional[str] = None
+        self.edgex_ws_task: Optional[asyncio.Task] = None
+        self.edgex_private_connected = False
+        self.edgex_last_message_time = None
+        self.edgex_heartbeat_timeout = 30  # 30 seconds without message triggers reconnect
 
         # Lighter WebSocket
         self.lighter_ws_task: Optional[asyncio.Task] = None
@@ -32,11 +46,24 @@ class WebSocketManagerWrapper:
         # Callbacks
         self.on_lighter_order_filled: Optional[Callable] = None
         self.on_edgex_order_update: Optional[Callable] = None
+        self.on_edgex_trade: Optional[Callable] = None
+        self.on_edgex_depth: Optional[Callable] = None
 
-    def set_edgex_ws_manager(self, ws_manager: WebSocketManager, contract_id: str):
+    def set_edgex_ws_manager(
+        self,
+        ws_manager: WebSocketManager,
+        contract_id: str,
+        public_ws_url: str = "wss://quote.edgex.exchange",
+        public_depth_levels: int = 15,
+    ):
         """Set EdgeX WebSocket manager and contract ID."""
         self.edgex_ws_manager = ws_manager
         self.edgex_contract_id = contract_id
+        self.edgex_public_ws_url = edgex_public_quote_ws_url(public_ws_url)
+        self.edgex_public_depth_levels = max(1, min(int(public_depth_levels), 500))
+        self.edgex_public_latency = 0.0
+        self.edgex_public_last_message_time = 0.0
+        self.edgex_public_ws_task = None
 
     def set_lighter_config(self, client, market_index: int, account_index: int):
         """Set Lighter client and configuration."""
@@ -45,48 +72,34 @@ class WebSocketManagerWrapper:
         self.account_index = account_index
 
     def set_callbacks(self, on_lighter_order_filled: Callable = None,
-                      on_edgex_order_update: Callable = None):
-        """Set callback functions for order updates."""
-        self.on_lighter_order_filled = on_lighter_order_filled
-        self.on_edgex_order_update = on_edgex_order_update
+                      on_edgex_order_update: Callable = None,
+                      on_edgex_trade: Callable = None,
+                      on_edgex_depth: Callable = None):
+        """Set callback functions for order updates and public messages."""
+        if on_lighter_order_filled: self.on_lighter_order_filled = on_lighter_order_filled
+        if on_edgex_order_update: self.on_edgex_order_update = on_edgex_order_update
+        if on_edgex_trade: self.on_edgex_trade = on_edgex_trade
+        if on_edgex_depth: self.on_edgex_depth = on_edgex_depth
 
     # EdgeX WebSocket methods
-    def handle_edgex_order_book_update(self, message):
-        """Handle EdgeX order book updates from WebSocket."""
-        try:
-            if isinstance(message, str):
-                message = json.loads(message)
+    def _update_edgex_heartbeat(self):
+        """Update last message time for heartbeat detection."""
+        self.edgex_last_message_time = time.time()
 
-            self.logger.debug(f"Received EdgeX depth message: {message}")
-
-            # Check if this is a quote-event message with depth data
-            if message.get("type") == "quote-event":
-                content = message.get("content", {})
-                channel = message.get("channel", "")
-
-                if channel.startswith("depth."):
-                    data = content.get('data', [])
-                    if data and len(data) > 0:
-                        order_book_data = data[0]
-                        depth_type = order_book_data.get('depthType', '')
-
-                        # Handle SNAPSHOT (full data) or CHANGED (incremental updates)
-                        if depth_type in ['SNAPSHOT', 'CHANGED']:
-                            bids = order_book_data.get('bids', [])
-                            asks = order_book_data.get('asks', [])
-                            self.order_book_manager.update_edgex_order_book(bids, asks)
-
-        except Exception as e:
-            self.logger.error(f"Error handling EdgeX order book update: {e}")
-            self.logger.error(f"Message content: {message}")
-
-    async def setup_edgex_websocket(self):
-        """Setup EdgeX websocket for order updates and order book data."""
+    async def handle_edgex_websocket(self):
+        """Handle EdgeX WebSocket connection with auto-reconnect and heartbeat monitoring."""
         if not self.edgex_ws_manager:
             raise Exception("EdgeX WebSocket manager not initialized")
 
+        reconnect_delay = 1.0
+        max_reconnect_delay = 60.0
+        heartbeat_check_interval = 5  # Check heartbeat every 5 seconds
+
         def order_update_handler(message):
             """Handle order updates from EdgeX WebSocket."""
+            # Update heartbeat on any message
+            self._update_edgex_heartbeat()
+            
             if isinstance(message, str):
                 message = json.loads(message)
 
@@ -114,39 +127,149 @@ class WebSocketManagerWrapper:
             except Exception as e:
                 self.logger.error(f"Error handling EdgeX order update: {e}")
 
-        try:
-            # Setup order update handler
-            private_client = self.edgex_ws_manager.get_private_client()
-            private_client.on_message("trade-event", order_update_handler)
-            self.logger.info("✅ EdgeX WebSocket order update handler set up")
+        while not self.stop_flag:
+            try:
+                # Setup disconnect/connect callbacks
+                def on_private_disconnect(exc):
+                    """Handle private WebSocket disconnect."""
+                    self.edgex_private_connected = False
 
-            # Connect to EdgeX WebSocket
-            self.edgex_ws_manager.connect_public()
-            self.edgex_ws_manager.connect_private()
-            self.logger.info("✅ EdgeX WebSocket connection established")
+                def on_private_connect():
+                    """Handle private WebSocket connect."""
+                    self.edgex_private_connected = True
+                    self._update_edgex_heartbeat()
 
-            # Setup public client for market data
-            public_client = self.edgex_ws_manager.get_public_client()
+                # Setup clients and handlers
+                try:
+                    private_client = self.edgex_ws_manager.get_private_client()
+                    
+                    if private_client:
+                        private_client.on_disconnect(on_private_disconnect)
+                        private_client.on_connect(on_private_connect)
+                        private_client.on_message("trade-event", order_update_handler)
 
-            # Register handler for depth messages
-            public_client.on_message("depth", self.handle_edgex_order_book_update)
-            self.logger.info("✅ EdgeX WebSocket depth handler registered")
+                except Exception as e:
+                    self.logger.error(f"⚠️ Failed to setup EdgeX WebSocket handlers: {e}")
+                    raise
 
-            # Subscribe to depth channel after connection is established
-            public_client.subscribe(f"depth.{self.edgex_contract_id}.15")
-            self.logger.info(f"✅ Subscribed to depth channel: depth.{self.edgex_contract_id}.15")
+                # Connect to EdgeX WebSocket
+                try:
+                    self.edgex_ws_manager.connect_private()
+                    self._update_edgex_heartbeat()
+                    reconnect_delay = 1.0  # Reset delay on successful connection
+                    
+                except Exception as e:
+                    self.logger.error(f"⚠️ Failed to connect EdgeX WebSocket: {e}")
+                    raise
 
-        except Exception as e:
-            self.logger.error(f"Could not setup EdgeX WebSocket handlers: {e}")
+                # Monitor connection health
+                while not self.stop_flag:
+                    await asyncio.sleep(heartbeat_check_interval)
+                    
+                    # Check if connections are still alive
+                    current_time = time.time()
+                    time_since_last_message = current_time - self.edgex_last_message_time if self.edgex_last_message_time else float('inf')
+                    
+                    # Check private client status
+                    try:
+                        private_client = self.edgex_ws_manager.get_private_client()
+                        if not private_client or not self.edgex_private_connected:
+                            break
+                    except Exception as e:
+                        break
+                    
+                    # Check heartbeat (no messages for too long)
+                    if time_since_last_message > self.edgex_heartbeat_timeout:
+                        break
+                    
+                    # Connection is healthy, reset reconnect delay
+                    reconnect_delay = 1.0
+
+            except Exception as e:
+                self.logger.error(f"⚠️ EdgeX WebSocket error: {e}")
+                self.logger.error(f"⚠️ Full traceback: {traceback.format_exc()}")
+            finally:
+                # Cleanup: disconnect before reconnecting
+                try:
+                    self.edgex_ws_manager.disconnect_all()
+                    self.edgex_private_connected = False
+                except Exception as e:
+                    self.logger.debug(f"Error during EdgeX disconnect (can be ignored): {e}")
+
+            # Wait before reconnecting with exponential backoff
+            if not self.stop_flag:
+                await asyncio.sleep(reconnect_delay)
+                reconnect_delay = min(max_reconnect_delay, reconnect_delay * 2)
+
+    async def setup_edgex_websocket(self):
+        """Setup EdgeX websocket (deprecated, use start_edgex_websocket instead)."""
+        self.logger.warning("⚠️ setup_edgex_websocket is deprecated, use start_edgex_websocket instead")
+        await self.handle_edgex_websocket()
+
+    async def handle_edgex_public_websocket(self):
+        """Handle EdgeX public WebSocket (trades/depth) with manual websockets for RTT/timestamping."""
+        reconnect_delay = 1.0
+        max_reconnect_delay = 60.0
+        
+        while not self.stop_flag:
+            try:
+                # SDK public client appends ?timestamp=ms (see edgex_sdk/ws/client.py)
+                ts = int(time.time() * 1000)
+                sep = "&" if "?" in self.edgex_public_ws_url else "?"
+                ws_connect_url = f"{self.edgex_public_ws_url}{sep}timestamp={ts}"
+                async with websockets.connect(ws_connect_url, ping_interval=1.0, ping_timeout=2.0) as ws:
+                    self.logger.debug(f"✅ Connected to EdgeX Public WS: {self.edgex_public_ws_url}")
+                    reconnect_delay = 1.0
+                    
+                    subscribe_args = []
+                    if self.on_edgex_trade:
+                        subscribe_args.append(f"trades.{self.edgex_contract_id}")
+                    if self.on_edgex_depth:
+                        lv = getattr(self, "edgex_public_depth_levels", 15)
+                        subscribe_args.append(f"depth.{self.edgex_contract_id}.{lv}")
+                        
+                    if subscribe_args:
+                        await ws.send(json.dumps({"op": "subscribe", "args": subscribe_args}))
+                        
+                    while not self.stop_flag:
+                        msg_str = await ws.recv()
+                        t_arrival = time.time()
+                        self.edgex_public_last_message_time = t_arrival
+                        self.edgex_public_latency = ws.latency * 1000 if ws.latency is not None else 0.0
+                        
+                        try:
+                            msg = json.loads(msg_str)
+                            channel = msg.get("channel", "")
+                            if channel.startswith("trades.") and self.on_edgex_trade:
+                                ret = self.on_edgex_trade(msg)
+                                if asyncio.iscoroutine(ret):
+                                    await ret
+                            elif channel.startswith("depth.") and self.on_edgex_depth:
+                                ret = self.on_edgex_depth(msg)
+                                if asyncio.iscoroutine(ret):
+                                    await ret
+                        except Exception as e:
+                            self.logger.debug(f"Public message parse error: {e}")
+                            
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.warning(f"⚠️ EdgeX Public WS error: {e}")
+                
+            if not self.stop_flag:
+                await asyncio.sleep(reconnect_delay)
+                reconnect_delay = min(max_reconnect_delay, reconnect_delay * 2)
+
+    def start_edgex_websocket(self):
+        """Start EdgeX WebSocket tasks with auto-reconnect."""
+        if self.edgex_ws_task is None or self.edgex_ws_task.done():
+            self.edgex_ws_task = asyncio.create_task(self.handle_edgex_websocket())
+            
+        if self.on_edgex_trade or self.on_edgex_depth:
+            if self.edgex_public_ws_task is None or self.edgex_public_ws_task.done():
+                self.edgex_public_ws_task = asyncio.create_task(self.handle_edgex_public_websocket())
 
     # Lighter WebSocket methods
-    async def request_fresh_snapshot(self, ws):
-        """Request fresh order book snapshot."""
-        await ws.send(json.dumps({
-            "type": "subscribe",
-            "channel": f"order_book/{self.lighter_market_index}"
-        }))
-
     async def handle_lighter_ws(self):
         """Handle Lighter WebSocket connection and messages."""
         url = "wss://mainnet.zklighter.elliot.ai/stream"
@@ -155,17 +278,8 @@ class WebSocketManagerWrapper:
         while not self.stop_flag:
             timeout_count = 0
             try:
-                # Reset order book state before connecting
-                await self.order_book_manager.reset_lighter_order_book()
-
                 async with websockets.connect(url) as ws:
-                    # Subscribe to order book updates
-                    await ws.send(json.dumps({
-                        "type": "subscribe",
-                        "channel": f"order_book/{self.lighter_market_index}"
-                    }))
-
-                    # Subscribe to account orders updates
+                    # Subscribe to account orders updates (no price subscription)
                     account_orders_channel = f"account_orders/{self.lighter_market_index}/{self.account_index}"
 
                     # Get auth token for the subscription
@@ -197,91 +311,23 @@ class WebSocketManagerWrapper:
 
                             timeout_count = 0
 
-                            async with self.order_book_manager.lighter_order_book_lock:
-                                if data.get("type") == "subscribed/order_book":
-                                    # Initial snapshot
-                                    self.order_book_manager.lighter_order_book["bids"].clear()
-                                    self.order_book_manager.lighter_order_book["asks"].clear()
+                            if data.get("type") == "ping":
+                                await ws.send(json.dumps({"type": "pong"}))
 
-                                    order_book = data.get("order_book", {})
-                                    if order_book and "offset" in order_book:
-                                        self.order_book_manager.lighter_order_book_offset = order_book["offset"]
-                                        self.logger.info(
-                                            f"✅ Initial order book offset: "
-                                            f"{self.order_book_manager.lighter_order_book_offset}")
-
-                                    bids = order_book.get("bids", [])
-                                    asks = order_book.get("asks", [])
-
-                                    self.order_book_manager.update_lighter_order_book("bids", bids)
-                                    self.order_book_manager.update_lighter_order_book("asks", asks)
-                                    self.order_book_manager.lighter_snapshot_loaded = True
-                                    self.order_book_manager.lighter_order_book_ready = True
-                                    self.order_book_manager.update_lighter_bbo()
-
-                                    self.logger.info(
-                                        f"✅ Lighter order book snapshot loaded with "
-                                        f"{len(self.order_book_manager.lighter_order_book['bids'])} bids and "
-                                        f"{len(self.order_book_manager.lighter_order_book['asks'])} asks")
-
-                                elif (data.get("type") == "update/order_book" and
-                                      self.order_book_manager.lighter_snapshot_loaded):
-                                    order_book = data.get("order_book", {})
-                                    if not order_book or "offset" not in order_book:
-                                        self.logger.warning("⚠️ Order book update missing offset, skipping")
-                                        continue
-
-                                    new_offset = order_book["offset"]
-
-                                    if not self.order_book_manager.validate_order_book_offset(new_offset):
-                                        self.order_book_manager.lighter_order_book_sequence_gap = True
-                                        break
-
-                                    self.order_book_manager.update_lighter_order_book(
-                                        "bids", order_book.get("bids", []))
-                                    self.order_book_manager.update_lighter_order_book(
-                                        "asks", order_book.get("asks", []))
-
-                                    if not self.order_book_manager.validate_order_book_integrity():
-                                        self.logger.warning(
-                                            "🔄 Order book integrity check failed, requesting fresh snapshot...")
-                                        break
-
-                                    self.order_book_manager.update_lighter_bbo()
-
-                                elif data.get("type") == "ping":
-                                    await ws.send(json.dumps({"type": "pong"}))
-
-                                elif data.get("type") == "update/account_orders":
-                                    orders = data.get("orders", {}).get(str(self.lighter_market_index), [])
-                                    for order in orders:
-                                        if order.get("status") == "filled" and self.on_lighter_order_filled:
-                                            self.on_lighter_order_filled(order)
-
-                                elif (data.get("type") == "update/order_book" and
-                                      not self.order_book_manager.lighter_snapshot_loaded):
-                                    continue
+                            elif data.get("type") == "update/account_orders":
+                                orders = data.get("orders", {}).get(str(self.lighter_market_index), [])
+                                for order in orders:
+                                    if order.get("status") == "filled" and self.on_lighter_order_filled:
+                                        self.on_lighter_order_filled(order)
 
                             cleanup_counter += 1
                             if cleanup_counter >= 1000:
                                 cleanup_counter = 0
 
-                            if self.order_book_manager.lighter_order_book_sequence_gap:
-                                try:
-                                    await self.request_fresh_snapshot(ws)
-                                    self.order_book_manager.lighter_order_book_sequence_gap = False
-                                except Exception as e:
-                                    self.logger.error(f"⚠️ Failed to request fresh snapshot: {e}")
-                                    break
-
                         except asyncio.TimeoutError:
                             timeout_count += 1
-                            if timeout_count % 3 == 0:
-                                self.logger.warning(
-                                    f"⏰ No message from Lighter websocket for {timeout_count} seconds")
                             continue
                         except websockets.exceptions.ConnectionClosed as e:
-                            self.logger.warning(f"⚠️ Lighter websocket connection closed: {e}")
                             break
                         except websockets.exceptions.WebSocketException as e:
                             self.logger.warning(f"⚠️ Lighter websocket error: {e}")
@@ -291,7 +337,7 @@ class WebSocketManagerWrapper:
                             self.logger.error(f"⚠️ Full traceback: {traceback.format_exc()}")
                             break
             except Exception as e:
-                self.logger.error(f"⚠️ Failed to connect to Lighter websocket: {e}")
+                pass
 
             await asyncio.sleep(2)
 
@@ -299,10 +345,26 @@ class WebSocketManagerWrapper:
         """Start Lighter WebSocket task."""
         if self.lighter_ws_task is None or self.lighter_ws_task.done():
             self.lighter_ws_task = asyncio.create_task(self.handle_lighter_ws())
-            self.logger.info("✅ Lighter WebSocket task started")
 
     def shutdown(self):
         """Shutdown WebSocket connections."""
+        self.stop_flag = True
+        
+        # Cancel EdgeX WebSocket tasks
+        if self.edgex_ws_task and not self.edgex_ws_task.done():
+            try:
+                self.edgex_ws_task.cancel()
+                self.logger.info("🔌 EdgeX WebSocket task cancelled")
+            except Exception as e:
+                self.logger.error(f"Error cancelling EdgeX WebSocket task: {e}")
+                
+        if self.edgex_public_ws_task and not self.edgex_public_ws_task.done():
+            try:
+                self.edgex_public_ws_task.cancel()
+                self.logger.info("🔌 EdgeX Public WebSocket task cancelled")
+            except Exception as e:
+                self.logger.error(f"Error cancelling EdgeX Public WebSocket task: {e}")
+
         # Close EdgeX WebSocket connections
         if self.edgex_ws_manager:
             try:
@@ -318,5 +380,3 @@ class WebSocketManagerWrapper:
                 self.logger.info("🔌 Lighter WebSocket task cancelled")
             except Exception as e:
                 self.logger.error(f"Error cancelling Lighter WebSocket task: {e}")
-
-        self.stop_flag = True

@@ -1,0 +1,382 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e5]:
+          - link "XYZ" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - img "XYZ" [ref=e7]
+          - navigation [ref=e8]:
+            - link "Trade" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - paragraph [ref=e10]: Trade
+            - link "Portfolio" [ref=e11] [cursor=pointer]:
+              - /url: /portfolio
+              - paragraph [ref=e12]: Portfolio
+            - link "Bounds" [ref=e13] [cursor=pointer]:
+              - /url: /discovery-bounds
+              - paragraph [ref=e14]: Bounds
+        - button "XYZ markets" [ref=e16] [cursor=pointer]:
+          - img "XYZ markets" [ref=e17]
+        - generic [ref=e18]:
+          - button [ref=e20] [cursor=pointer]:
+            - img [ref=e21]
+          - button "Connect Wallet" [ref=e23] [cursor=pointer]
+          - button [ref=e25] [cursor=pointer]:
+            - img [ref=e26]
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e32]:
+            - button [ref=e35] [cursor=pointer]
+            - generic [ref=e40]:
+              - generic [ref=e41]:
+                - iframe [ref=e45]:
+                  - generic [active] [ref=f11e1]:
+                    - contentinfo:
+                      - paragraph: TradingView is interactive and has commands to use with a screen reader. The following is a list of keyboard commands available to interact on the platform
+                      - list:
+                        - listitem: Start using keyboard navigation mode. Press ⌥ + Z
+                        - listitem: Quick search. Press ⌘ + K
+                        - listitem: Change symbol. Start typing symbol name
+                        - listitem: Change interval. Press number or comma
+                        - listitem: Indicators, Metrics and Strategies. Press slash
+                        - listitem: Open layout. Press period
+                    - generic [ref=f11e2]:
+                      - toolbar [ref=f11e6]:
+                        - generic [ref=f11e10]:
+                          - button "1 hour" [ref=f11e13]:
+                            - generic [ref=f11e15]: 1h
+                          - button "Candles" [ref=f11e20]:
+                            - img [ref=f11e22]:
+                              - img [ref=f11e23]
+                          - button "Indicators & Strategies" [ref=f11e32]:
+                            - img [ref=f11e33]:
+                              - img [ref=f11e34]
+                            - generic [ref=f11e36]: Indicators
+                      - generic [ref=f11e38]:
+                        - toolbar [ref=f11e39]:
+                          - generic [ref=f11e43]:
+                            - generic [ref=f11e44]:
+                              - generic [ref=f11e47]:
+                                - button "Cross" [ref=f11e49]:
+                                  - img [ref=f11e50]:
+                                    - img [ref=f11e51]
+                                - button "Cursors" [pressed] [ref=f11e55]:
+                                  - img [ref=f11e56]:
+                                    - img [ref=f11e57]
+                              - generic [ref=f11e61]:
+                                - button "Trend Line" [ref=f11e63]:
+                                  - img [ref=f11e64]:
+                                    - img [ref=f11e65]
+                                - button "Trend line tools" [ref=f11e69]:
+                                  - img [ref=f11e70]:
+                                    - img [ref=f11e71]
+                              - generic [ref=f11e75]:
+                                - button "Fib Retracement" [ref=f11e77]:
+                                  - img [ref=f11e78]:
+                                    - img [ref=f11e79]
+                                - button "Gann and Fibonacci tools" [ref=f11e86]:
+                                  - img [ref=f11e87]:
+                                    - img [ref=f11e88]
+                              - generic [ref=f11e92]:
+                                - button "XABCD Pattern" [ref=f11e94]:
+                                  - img [ref=f11e95]:
+                                    - img [ref=f11e96]
+                                - button "Patterns" [ref=f11e100]:
+                                  - img [ref=f11e101]:
+                                    - img [ref=f11e102]
+                              - generic [ref=f11e106]:
+                                - button "Long Position" [ref=f11e108]:
+                                  - img [ref=f11e109]:
+                                    - img [ref=f11e110]
+                                - button "Forecasting and measurement tools" [ref=f11e113]:
+                                  - img [ref=f11e114]:
+                                    - img [ref=f11e115]
+                              - generic [ref=f11e119]:
+                                - button "Brush" [ref=f11e121]:
+                                  - img [ref=f11e122]:
+                                    - img [ref=f11e123]
+                                - button "Geometric shapes" [ref=f11e127]:
+                                  - img [ref=f11e128]:
+                                    - img [ref=f11e129]
+                              - generic [ref=f11e133]:
+                                - button "Text" [ref=f11e135]:
+                                  - img [ref=f11e136]:
+                                    - img [ref=f11e137]
+                                - button "Annotation tools" [ref=f11e139]:
+                                  - img [ref=f11e140]:
+                                    - img [ref=f11e141]
+                              - generic [ref=f11e144]:
+                                - button "Icon" [ref=f11e146]:
+                                  - img [ref=f11e147]:
+                                    - img [ref=f11e148]
+                                - button "Icons" [ref=f11e150]:
+                                  - img [ref=f11e151]:
+                                    - img [ref=f11e152]
+                            - generic [ref=f11e154]:
+                              - button "Measure" [ref=f11e155]:
+                                - img [ref=f11e156]:
+                                  - img [ref=f11e157]
+                              - button "Zoom In" [ref=f11e159]:
+                                - img [ref=f11e160]:
+                                  - img [ref=f11e161]
+                            - generic [ref=f11e166]:
+                              - generic [ref=f11e169]:
+                                - button "Magnet Mode snaps drawings placed near price bars to the closest OHLC value" [ref=f11e171]:
+                                  - img [ref=f11e172]:
+                                    - img [ref=f11e173]
+                                - button "Magnets" [ref=f11e177]:
+                                  - img [ref=f11e178]:
+                                    - img [ref=f11e179]
+                              - button "Keep drawing" [ref=f11e181]:
+                                - img [ref=f11e182]:
+                                  - img [ref=f11e183]
+                              - button "Lock all drawings" [ref=f11e185]:
+                                - img [ref=f11e186]:
+                                  - img [ref=f11e187]
+                              - generic [ref=f11e190]:
+                                - button "Hide all drawings" [ref=f11e192]:
+                                  - img [ref=f11e193]:
+                                    - img [ref=f11e194]
+                                - button "Hide options" [ref=f11e196]:
+                                  - img [ref=f11e197]:
+                                    - img [ref=f11e198]
+                            - generic [ref=f11e202]:
+                              - button "Remove 0 drawings" [ref=f11e204]:
+                                - img [ref=f11e205]:
+                                  - img [ref=f11e206]
+                              - button "Remove options" [ref=f11e208]:
+                                - img [ref=f11e209]:
+                                  - img [ref=f11e210]
+                        - button "Hide Drawings Toolbar" [ref=f11e214]:
+                          - img [ref=f11e215]
+                      - 'region "Chart #1" [ref=f11e222]':
+                        - generic [ref=f11e226]:
+                          - generic:
+                            - generic:
+                              - toolbar:
+                                - generic:
+                                  - generic [ref=f11e227]:
+                                    - generic [ref=f11e229]: xyz:GOLDUSD
+                                    - generic [ref=f11e230]:
+                                      - text: ·
+                                      - generic [ref=f11e231]: 1h
+                                    - generic [ref=f11e232]:
+                                      - text: ·
+                                      - generic [ref=f11e233]: Hyperliquid
+                                  - generic:
+                                    - generic:
+                                      - button "More":
+                                        - generic:
+                                          - img
+                                - generic [ref=f11e235]:
+                                  - generic [ref=f11e236]:
+                                    - generic [ref=f11e237]: O
+                                    - generic [ref=f11e238]: ∅
+                                  - generic [ref=f11e239]:
+                                    - generic [ref=f11e240]: H
+                                    - generic [ref=f11e241]: ∅
+                                  - generic [ref=f11e242]:
+                                    - generic [ref=f11e243]: L
+                                    - generic [ref=f11e244]: ∅
+                                  - generic [ref=f11e245]:
+                                    - generic [ref=f11e246]: C
+                                    - generic [ref=f11e247]: ∅
+                                  - generic [ref=f11e249]: ∅ (∅%)
+                          - generic "Chart for XYZ:GOLDUSD, 1 hour" [ref=f11e256]
+                    - alert
+                - img "Loading..." [ref=e47]
+              - generic [ref=e48]:
+                - generic [ref=e50]:
+                  - button "Order Book" [ref=e52] [cursor=pointer]
+                  - button "Trades" [ref=e53] [cursor=pointer]
+                - generic [ref=e54]:
+                  - generic [ref=e56]:
+                    - paragraph [ref=e57]: Price
+                    - paragraph [ref=e58]: Size
+                    - paragraph [ref=e59]: Total
+                  - generic [ref=e180]:
+                    - img [ref=e181]
+                    - img [ref=e186]
+          - generic [ref=e301]:
+            - generic [ref=e302]:
+              - tablist [ref=e305]:
+                - tab "Balances" [selected] [ref=e306] [cursor=pointer]:
+                  - generic [ref=e307]: Balances
+                - tab "Positions" [ref=e308] [cursor=pointer]:
+                  - generic [ref=e309]: Positions
+                - tab "Open Orders" [ref=e310] [cursor=pointer]:
+                  - generic [ref=e311]: Open Orders
+                - tab "TWAP" [ref=e312] [cursor=pointer]:
+                  - generic [ref=e313]: TWAP
+                - tab "Trade History" [ref=e314] [cursor=pointer]:
+                  - generic [ref=e315]: Trade History
+                - tab "Funding History" [ref=e316] [cursor=pointer]:
+                  - generic [ref=e317]: Funding History
+                - tab "Order History" [ref=e318] [cursor=pointer]:
+                  - generic [ref=e319]: Order History
+                - tab "Account Activity" [ref=e320] [cursor=pointer]:
+                  - generic [ref=e321]: Account Activity
+              - generic [ref=e324]:
+                - generic [ref=e325] [cursor=pointer]:
+                  - checkbox [ref=e326]
+                  - paragraph [ref=e327]: Aggregate Balances
+                - generic [ref=e328] [cursor=pointer]:
+                  - checkbox [ref=e329]
+                  - paragraph [ref=e330]: Hide Small Balances
+            - table [ref=e333]:
+              - rowgroup [ref=e334]:
+                - row "Asset Total Balance Available Balance Value (USD) PNL (ROE %) Actions" [ref=e335]:
+                  - columnheader "Asset" [ref=e336]:
+                    - generic [ref=e337]: Asset
+                  - columnheader "Total Balance" [ref=e338]:
+                    - generic [ref=e339]: Total Balance
+                  - columnheader "Available Balance" [ref=e340]:
+                    - generic [ref=e342] [cursor=pointer]: Available Balance
+                  - columnheader "Value (USD)" [ref=e343]:
+                    - generic [ref=e344]: Value (USD)
+                  - columnheader "PNL (ROE %)" [ref=e345]:
+                    - generic [ref=e346]: PNL (ROE %)
+                  - columnheader "Actions" [ref=e347]:
+                    - generic [ref=e348]: Actions
+              - rowgroup [ref=e349]:
+                - row "Connect wallet to view balances" [ref=e350]:
+                  - cell "Connect wallet to view balances" [ref=e351]
+        - generic [ref=e352]:
+          - generic [ref=e353]:
+            - generic [ref=e354]:
+              - tablist [ref=e356]:
+                - tab "Long" [selected] [ref=e357] [cursor=pointer]:
+                  - generic [ref=e358]: Long
+                - tab "Short" [ref=e359] [cursor=pointer]:
+                  - generic [ref=e360]: Short
+              - generic [ref=e362]:
+                - generic [ref=e363]:
+                  - generic [ref=e366]:
+                    - button "Market" [ref=e367] [cursor=pointer]
+                    - button "Limit" [ref=e368] [cursor=pointer]
+                    - button "Pro" [ref=e369] [cursor=pointer]:
+                      - generic [ref=e370]: Pro
+                      - img
+                  - generic [ref=e371]:
+                    - button "25x" [disabled]:
+                      - generic:
+                        - text: 25x
+                        - generic:
+                          - img
+                    - generic [ref=e372]:
+                      - button "Isolated" [disabled]:
+                        - generic:
+                          - text: Isolated
+                          - generic:
+                            - img
+                  - generic [ref=e373]:
+                    - generic [ref=e374]:
+                      - generic [ref=e376]: Available to Trade
+                      - generic [ref=e377] [cursor=pointer]: 0.00 USDC
+                    - generic [ref=e378]:
+                      - generic [ref=e379]: Current Position
+                      - generic [ref=e380]: 0 GOLD
+                - generic [ref=e381]:
+                  - generic [ref=e382]:
+                    - generic [ref=e383]:
+                      - paragraph [ref=e384]: Amount
+                      - button "MAX" [ref=e386] [cursor=pointer]
+                      - textbox [ref=e388]: "0"
+                      - paragraph [ref=e390]: GOLD
+                      - img [ref=e392] [cursor=pointer]
+                    - generic [ref=e396]:
+                      - group "Slider" [ref=e399]:
+                        - generic "Slider thumb 1" [ref=e402]:
+                          - slider "Slider" [ref=e404]: "0"
+                      - generic [ref=e411]:
+                        - textbox "0" [ref=e413]
+                        - img [ref=e416]
+                    - generic [ref=e420]:
+                      - generic [ref=e422]:
+                        - checkbox "Reduce Only" [ref=e423] [cursor=pointer]
+                        - generic [ref=e426] [cursor=pointer]: Reduce Only
+                      - generic [ref=e430]:
+                        - checkbox "Take Profit / Stop Loss" [ref=e431] [cursor=pointer]
+                        - generic [ref=e434] [cursor=pointer]: Take Profit / Stop Loss
+                  - button "Connect Wallet" [ref=e435] [cursor=pointer]
+                - generic [ref=e436]:
+                  - generic [ref=e437]:
+                    - generic [ref=e439] [cursor=pointer]: Liquidation Price
+                    - generic [ref=e440]: $0,00
+                  - generic [ref=e441]:
+                    - generic [ref=e442]: Order Value
+                    - generic [ref=e443]: $0.00
+                  - generic [ref=e444]:
+                    - generic [ref=e445]: Margin Required
+                    - generic [ref=e446]: $0.00
+                  - generic [ref=e448]:
+                    - generic [ref=e450] [cursor=pointer]: Slippage
+                    - generic [ref=e452]: "Est: 0.0000% / Max: 8.00%"
+                  - button "Fees 0.0900% / 0.0300%" [ref=e453] [cursor=pointer]:
+                    - generic [ref=e455]: Fees
+                    - paragraph [ref=e458]: 0.0900% / 0.0300%
+            - generic [ref=e459]:
+              - text: By submitting this trade, you agree to our
+              - link "Terms of Use" [ref=e460] [cursor=pointer]:
+                - /url: https://trade.xyz/terms
+              - text: and attest that you are not trading from a restricted territory.
+          - generic [ref=e462]:
+            - generic [ref=e464]:
+              - paragraph [ref=e467]: Account Value
+              - paragraph [ref=e468]: $0.00
+            - generic [ref=e469]:
+              - button "Deposit" [ref=e470] [cursor=pointer]
+              - button "Transfer" [disabled]
+              - button "Withdraw" [disabled]
+            - generic [ref=e471]:
+              - generic [ref=e472]:
+                - paragraph [ref=e473]: Spot
+                - paragraph [ref=e474]: "--"
+              - generic [ref=e475]:
+                - paragraph [ref=e476]: Perps
+                - img "Perps" [ref=e477]
+                - paragraph [ref=e478]: "--"
+              - generic [ref=e479]:
+                - generic [ref=e480]:
+                  - paragraph [ref=e481]: Perps
+                  - img "Perps" [ref=e482]
+                - paragraph [ref=e483]: "--"
+              - generic [ref=e484]:
+                - paragraph [ref=e485]: Vaults Account
+                - paragraph [ref=e486]: "--"
+              - generic [ref=e487]:
+                - paragraph [ref=e488]: Earn Balance
+                - paragraph [ref=e489]: "--"
+              - generic [ref=e490]:
+                - paragraph [ref=e491]: Staking Account
+                - paragraph [ref=e492]: "--"
+      - contentinfo [ref=e493]:
+        - generic [ref=e494]:
+          - link "Mainnet" [ref=e496] [cursor=pointer]:
+            - /url: https://hyperliquid.statuspage.io/
+            - text: Mainnet
+          - paragraph [ref=e501]: WebSockets
+          - paragraph [ref=e504]: Wallet Disconnected
+          - generic [ref=e506]:
+            - img [ref=e507]
+            - paragraph [ref=e509]: 999fe
+        - generic [ref=e510]:
+          - generic [ref=e511]:
+            - generic [ref=e512]: ⌘K
+            - generic [ref=e513]: List Markets
+          - generic [ref=e514]: "|"
+          - generic [ref=e515]:
+            - generic [ref=e516]: ⌘/
+            - generic [ref=e517]: List Shortcuts (hold)
+        - generic [ref=e518]:
+          - button "Support" [disabled] [ref=e520]
+          - link "Docs" [ref=e522] [cursor=pointer]:
+            - /url: https://docs.trade.xyz
+          - link "Terms" [ref=e524] [cursor=pointer]:
+            - /url: https://trade.xyz/terms
+          - link "Privacy" [ref=e526] [cursor=pointer]:
+            - /url: https://trade.xyz/privacyPolicy
+    - generic:
+      - region "Notifications alt+T"
+  - alert [ref=e527]

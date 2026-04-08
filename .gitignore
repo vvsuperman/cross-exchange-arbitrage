@@ -12,6 +12,8 @@ build/
 develop-eggs/
 dist/
 downloads/
+downloaded_files/
+download_files/
 eggs/
 .eggs/
 lib/
@@ -136,6 +138,8 @@ celerybeat.pid
 
 # Environments
 .env
+.okx_wallet.env
+okx_wallet.env
 .envrc
 .venv
 env/

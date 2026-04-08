@@ -8,13 +8,20 @@ import time
 import logging
 from decimal import Decimal
 from typing import Dict, Any, List, Optional, Tuple
+import ssl
+import socket
+
+import aiohttp
+import aiohttp_retry
 
 from .base import BaseExchangeClient, OrderResult, OrderInfo, query_retry
 from helpers.logger import TradingLogger
 
 # Import official Lighter SDK for API client
 import lighter
-from lighter import SignerClient, ApiClient, Configuration
+from lighter.signer_client import SignerClient
+
+from lighter import ApiClient, Configuration
 
 # Import custom WebSocket implementation
 from .lighter_custom_websocket import LighterCustomWebSocketManager
@@ -44,14 +51,23 @@ class LighterClient(BaseExchangeClient):
             raise ValueError("API_KEY_PRIVATE_KEY must be set in environment variables")
 
         # Initialize logger
-        self.logger = TradingLogger(exchange="lighter", ticker=self.config.ticker, log_to_console=False)
+        log_to_console = os.getenv("LIGHTER_LOG_TO_CONSOLE", "").lower() in ("1", "true", "yes")
+        if os.getenv("LIGHTER_DEBUG_HTTP", "").lower() in ("1", "true", "yes"):
+            log_to_console = True
+        self.logger = TradingLogger(exchange="lighter", ticker=self.config.ticker, log_to_console=log_to_console)
         self._order_update_handler = None
 
         # Initialize Lighter client (will be done in connect)
         self.lighter_client = None
 
         # Initialize API client (will be done in connect)
-        self.api_client = None
+        
+        self.api_client = ApiClient(configuration=Configuration(host=self.base_url))
+        # Avoid aiohttp env proxy lookup delays on some servers.
+        try:
+            self.api_client.rest_client.pool_manager._trust_env = False
+        except Exception:
+            pass
 
         # Market configuration
         self.base_amount_multiplier = None
@@ -66,6 +82,18 @@ class LighterClient(BaseExchangeClient):
         missing_vars = [var for var in required_env_vars if not os.getenv(var)]
         if missing_vars:
             raise ValueError(f"Missing required environment variables: {missing_vars}")
+
+
+    async def get_best_levels(self, symbol: str = "") -> Tuple[Decimal, Decimal, Decimal, Decimal]:
+        market_index, base_multiplier, price_multiplier = await self._get_market_config(symbol)
+        
+        order_api = lighter.OrderApi(self.api_client)
+        order_book = await order_api.order_book_orders(market_id=market_index, limit=3)
+        best_bid = Decimal(order_book.bids[0].price)
+        best_bid_size = Decimal(order_book.bids[0].remaining_base_amount)
+        best_ask = Decimal(order_book.asks[0].price)
+        best_ask_size = Decimal(order_book.asks[0].remaining_base_amount)
+        return best_bid, best_bid_size, best_ask, best_ask_size
 
     async def _get_market_config(self, ticker: str) -> Tuple[int, int, int]:
         """Get market configuration for a ticker using official SDK."""
@@ -105,9 +133,11 @@ class LighterClient(BaseExchangeClient):
                 self.lighter_client = SignerClient(
                     url=self.base_url,
                     private_key=self.api_key_private_key,
-                    account_index=self.account_index,
                     api_key_index=self.api_key_index,
+                    account_index=self.account_index,
                 )
+                # Stabilize aiohttp client behavior on some servers.
+                await self._configure_lighter_http_client(self.lighter_client.api_client)
 
                 # Check client
                 err = self.lighter_client.check_client()
@@ -120,17 +150,80 @@ class LighterClient(BaseExchangeClient):
                 raise
         return self.lighter_client
 
+    async def _configure_lighter_http_client(self, api_client: ApiClient):
+        """Force IPv4 and disable env proxy lookup for Lighter SDK."""
+        try:
+            config = api_client.configuration
+            rest_client = api_client.rest_client
+
+            # Rebuild SSL context to mirror SDK behavior.
+            ssl_context = ssl.create_default_context(cafile=config.ssl_ca_cert)
+            if config.cert_file:
+                ssl_context.load_cert_chain(config.cert_file, keyfile=config.key_file)
+            if not config.verify_ssl:
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+
+            trace_config = aiohttp.TraceConfig()
+
+
+            connector = aiohttp.TCPConnector(
+                limit=config.connection_pool_maxsize,
+                ssl=ssl_context,
+                family=socket.AF_INET,
+            )
+            timeout = aiohttp.ClientTimeout(total=20, connect=5, sock_connect=5, sock_read=10)
+
+            # Close existing sessions before replacing.
+            try:
+                await rest_client.close()
+            except Exception:
+                pass
+
+            rest_client.pool_manager = aiohttp.ClientSession(
+                connector=connector,
+                trust_env=False,
+                timeout=timeout,
+                trace_configs=[trace_config],
+            )
+
+            if config.retries is not None:
+                rest_client.retry_client = aiohttp_retry.RetryClient(
+                    client_session=rest_client.pool_manager,
+                    retry_options=aiohttp_retry.ExponentialRetry(
+                        attempts=config.retries,
+                        factor=0.0,
+                        start_timeout=0.0,
+                        max_timeout=120.0,
+                    ),
+                )
+            else:
+                rest_client.retry_client = None
+        except Exception as e:
+            self.logger.log(f"Failed to configure Lighter HTTP client: {e}", "WARNING")
+
     async def connect(self) -> None:
         """Connect to Lighter."""
         try:
             # Initialize shared API client
-            self.api_client = ApiClient(configuration=Configuration(host=self.base_url))
+          
 
             # Initialize Lighter client
             await self._initialize_lighter_client()
 
+            # Get contract attributes first to set contract_id
+            # This must be done before initializing WebSocket manager
+            # If contract_id is not set, get it now
+            if not self.config.contract_id:
+                await self.get_contract_attributes()
+            else:
+                # If contract_id is already set, update market_index
+                self.config.market_index = self.config.contract_id
+
             # Add market config to config for WebSocket manager
-            self.config.market_index = self.config.contract_id
+            # Ensure market_index is set correctly
+            if not hasattr(self.config, 'market_index') or not self.config.market_index:
+                self.config.market_index = self.config.contract_id
             self.config.account_index = self.account_index
             self.config.lighter_client = self.lighter_client
 
@@ -259,6 +352,9 @@ class LighterClient(BaseExchangeClient):
 
         # Create order using official SDK
         create_order, tx_hash, error = await self.lighter_client.create_order(**order_params)
+        if error is not None and "invalid nonce" in str(error).lower():
+            self._refresh_lighter_nonce()
+            create_order, tx_hash, error = await self.lighter_client.create_order(**order_params)
         if error is not None:
             return OrderResult(
                 success=False, order_id=str(order_params['client_order_index']),
@@ -301,6 +397,17 @@ class LighterClient(BaseExchangeClient):
 
         order_result = await self._submit_order_with_retry(order_params)
         return order_result
+
+    def _refresh_lighter_nonce(self) -> None:
+        """Force refresh Lighter nonce from API."""
+        try:
+            api_key_index = getattr(self.lighter_client, "api_key_index", None)
+            if api_key_index is None:
+                return
+            self.lighter_client.nonce_manager.hard_refresh_nonce(api_key_index)
+            self.logger.log("Refreshed Lighter nonce from API", "WARNING")
+        except Exception as e:
+            self.logger.log(f"Failed to refresh Lighter nonce: {e}", "WARNING")
 
     async def place_open_order(self, contract_id: str, quantity: Decimal, direction: str) -> OrderResult:
         """Place an open order with Lighter using official SDK."""

@@ -170,6 +170,15 @@ cross-exchange-arbitrage/
 5. **Position Management**: Tracks positions in real-time to ensure they don't exceed maximum position limits
 6. **Risk Control**: Monitors order fill status and cancels orders if they don't fill within the timeout period
 
+## Development Principles
+
+- Prefer the smallest implementation that matches the real logic of the current page or flow.
+- Do not introduce preventive generalization; avoid building compatibility layers, shared frameworks, or extension points for hypothetical future cases.
+- Every compatibility branch must be justified by a reproduced problem and should be traceable to a specific failure case in the code.
+- This rule applies to all code, not just UI automation; business logic, data structures, API wrappers, configuration design, and tooling should not be generalized casually.
+
+Start with the shortest implementation that matches the current problem and business path. Only add extra compatibility branches, abstractions, or extension points after the simple implementation has been clearly proven insufficient.
+
 ## Important Notes
 
 ⚠️ **Risk Warning**:

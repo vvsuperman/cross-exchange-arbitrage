@@ -1,0 +1,55 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Omni / trade.xyz 价差监控" [level=1] [ref=e4]
+    - paragraph [ref=e5]: "价差1: trade.xyz bid - omni ask。价差2: omni bid - trade.xyz ask。"
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: 标的
+        - combobox "标的" [ref=e9]:
+          - option "XAU" [selected]
+      - generic [ref=e10]:
+        - generic [ref=e11]: 开始时间
+        - textbox "开始时间" [ref=e12]: 2026-04-07T18:30
+      - generic [ref=e13]:
+        - generic [ref=e14]: 结束时间
+        - textbox "结束时间" [ref=e15]: 2026-04-08T18:30
+      - button "加载数据" [ref=e17] [cursor=pointer]
+  - heading "价差曲线" [level=2] [ref=e19]
+  - heading "买一卖一价格" [level=2] [ref=e23]
+  - generic [ref=e26]:
+    - generic [ref=e27]:
+      - heading "价差1统计" [level=3] [ref=e28]
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: 均值
+          - strong [ref=e32]: 0.6783%
+        - generic [ref=e33]:
+          - generic [ref=e34]: 中位数
+          - strong [ref=e35]: 0.6809%
+        - generic [ref=e36]:
+          - generic [ref=e37]: 最大值
+          - strong [ref=e38]: 0.6809%
+        - generic [ref=e39]:
+          - generic [ref=e40]: 最小值
+          - strong [ref=e41]: 0.6702%
+        - generic [ref=e42]:
+          - generic [ref=e43]: 标准差
+          - strong [ref=e44]: 0.0046%
+    - generic [ref=e45]:
+      - heading "价差2统计" [level=3] [ref=e46]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: 均值
+          - strong [ref=e50]: "-0.7392%"
+        - generic [ref=e51]:
+          - generic [ref=e52]: 中位数
+          - strong [ref=e53]: "-0.7417%"
+        - generic [ref=e54]:
+          - generic [ref=e55]: 最大值
+          - strong [ref=e56]: "-0.7312%"
+        - generic [ref=e57]:
+          - generic [ref=e58]: 最小值
+          - strong [ref=e59]: "-0.7417%"
+        - generic [ref=e60]:
+          - generic [ref=e61]: 标准差
+          - strong [ref=e62]: 0.0045%

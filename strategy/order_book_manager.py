@@ -138,6 +138,7 @@ class OrderBookManager:
 
     def get_lighter_bbo(self) -> Tuple[Optional[Decimal], Optional[Decimal]]:
         """Get Lighter best bid/ask prices."""
+        
         return self.lighter_best_bid, self.lighter_best_ask
 
     def get_lighter_mid_price(self) -> Decimal:
