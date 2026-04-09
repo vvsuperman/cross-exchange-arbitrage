@@ -1,0 +1,6 @@
+# 可选：仅浏览器栈（瘦身安装）。主环境 requirements.txt 已含 seleniumbase。
+#
+# 若在「已装 lighter-sdk / requirements-lighter.txt」的 venv 里，勿再混装 seleniumbase
+#（urllib3 约束冲突）；请另建 venv 或只用 lighter_env / 主环境二选一。
+
+seleniumbase>=4.47.9

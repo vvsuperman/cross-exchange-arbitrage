@@ -1,0 +1,18 @@
+# 仅用于 Lighter 客户端（exchanges/lighter.py 等），独立 venv：lighter_env
+#
+#   python3 -m venv lighter_env
+#   source lighter_env/bin/activate   # Windows: lighter_env\Scripts\activate
+#   pip install -r requirements-lighter.txt
+#
+# urllib3 上限与 lighter-sdk 一致；勿与 seleniumbase 同环境（见 requirements-selenium.txt）
+
+urllib3>=1.26.20,<2.1
+requests~=2.33.1
+idna>=3.11,<4
+websockets>=12.0
+aiohttp>=3.9.0
+aiohttp-retry>=2.9.1
+tenacity>=9.1.2
+python-dotenv>=1.0.0
+
+git+https://github.com/elliottech/lighter-python.git@d0009799970aad54ebb940aa3dc90cbc00028c54

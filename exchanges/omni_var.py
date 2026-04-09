@@ -243,7 +243,11 @@ try:
         build_driver,
     )
 except ImportError:
-    from frontend_arbitrage import (
+    # 直接运行本文件时无包上下文，相对导入失败；需从项目根导入 exchanges.*
+    _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _ROOT not in sys.path:
+        sys.path.insert(0, _ROOT)
+    from exchanges.frontend_arbitrage import (  # noqa: E402
         OMNI_TRADER_USER_DATA_DIR,
         OMNI_VIEWER_USER_DATA_DIR,
         OmniSeleniumClient,

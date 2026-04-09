@@ -59,16 +59,16 @@ except ImportError:
 # viewer_* 用于价格查看/抓价；
 # *_trader 用于安装钱包、连接钱包、后续下单。
 OMNI_VIEWER_USER_DATA_DIR = os.path.expanduser(
-    "/Users/fang/Library/Application Support/Google/Chrome/auto-user2"
+    "~/Library/Application Support/Google/Chrome/auto-user2"
 )
 XYZ_VIEWER_USER_DATA_DIR = os.path.expanduser(
-    "/Users/fang/Library/Application Support/Google/Chrome/auto-user-tradexyz-test"
+    "~/Library/Application Support/Google/Chrome/auto-user-tradexyz-test"
 )
 OMNI_TRADER_USER_DATA_DIR = os.path.expanduser(
-    "/Users/fang/Library/Application Support/Google/Chrome/omni-trader"
+    "~/Library/Application Support/Google/Chrome/omni-trader"
 )
 XYZ_TRADER_USER_DATA_DIR = os.path.expanduser(
-    "/Users/fang/Library/Application Support/Google/Chrome/xyz-trader"
+    "~/Library/Application Support/Google/Chrome/xyz-trader"
 )
 
 # 通用默认 profile：
