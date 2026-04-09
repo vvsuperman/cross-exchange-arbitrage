@@ -9,7 +9,7 @@ import signal
 import subprocess
 import sys
 import time
-from typing import List
+from typing import Any, Dict, List
 
 
 ### 第一阶段：Connect Wallet
@@ -236,6 +236,7 @@ from typing import List
 
 try:
     from .frontend_arbitrage import (
+        MarketConfig,
         OMNI_TRADER_USER_DATA_DIR,
         OMNI_VIEWER_USER_DATA_DIR,
         OmniSeleniumClient,
@@ -248,6 +249,7 @@ except ImportError:
     if _ROOT not in sys.path:
         sys.path.insert(0, _ROOT)
     from exchanges.frontend_arbitrage import (  # noqa: E402
+        MarketConfig,
         OMNI_TRADER_USER_DATA_DIR,
         OMNI_VIEWER_USER_DATA_DIR,
         OmniSeleniumClient,
@@ -356,6 +358,7 @@ def build_client(
     symbols: List[str],
     user_data_dir: str | None = None,
     dry_run: bool = True,
+    market_overrides: Dict[str, Dict[str, Any]] | None = None,
 ) -> OmniSeleniumClient:
     """创建 Omni 浏览器 client。
 
@@ -365,6 +368,17 @@ def build_client(
     site_configs = build_default_site_configs()
     driver = build_driver(user_data_dir=user_data_dir)
     config = site_configs["omni"]
+    normalized_overrides = {
+        symbol.upper(): data
+        for symbol, data in (market_overrides or {}).items()
+    }
+    for symbol, data in normalized_overrides.items():
+        existing = config.markets.get(symbol)
+        config.markets[symbol] = MarketConfig(
+            symbol=symbol,
+            path=str(data.get("path") or (existing.path if existing else f"perpetual/{symbol}")),
+            quantity=float(data.get("quantity", existing.quantity if existing else 1.0)),
+        )
     config.markets = {
         symbol: market
         for symbol, market in config.markets.items()

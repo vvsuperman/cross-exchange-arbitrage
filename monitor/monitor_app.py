@@ -23,16 +23,14 @@ app = Flask(__name__, template_folder=template_dir)
 
 # 数据库路径
 DB_DIR = os.path.join(project_root, "logs")
-EDGEX_DB = os.path.join(DB_DIR, "edgex_bbo.db")
-LIGHTER_DB = os.path.join(DB_DIR, "lighter_bbo.db")
-BACKPACK_DB = os.path.join(DB_DIR, "backpack_bbo.db")
+EXCHANGE_BBO_DB = os.path.join(DB_DIR, "exchange_bbo.db")
 ARB_INFO_DB = os.path.join(DB_DIR, "arb_info.db")
 
 # 交易所数据库映射
 EXCHANGE_DB_MAP = {
-    'edgex': EDGEX_DB,
-    'lighter': LIGHTER_DB,
-    'backpack': BACKPACK_DB
+    'edgex': EXCHANGE_BBO_DB,
+    'lighter': EXCHANGE_BBO_DB,
+    'backpack': EXCHANGE_BBO_DB
 }
 
 # 定义 UTC+8 时区（数据库存储的时间是UTC+8，但没有时区标记）
@@ -43,14 +41,14 @@ def get_available_tickers() -> List[str]:
     """获取数据库中可用的标的列表"""
     tickers = set()
     
-    # 从所有交易所数据库获取
-    for exchange, db_path in EXCHANGE_DB_MAP.items():
+    db_path = EXCHANGE_BBO_DB
+    if not os.path.exists(db_path):
+        return []
+    for exchange in EXCHANGE_DB_MAP:
         try:
-            if not os.path.exists(db_path):
-                continue
             conn = sqlite3.connect(db_path, timeout=10.0)
             cursor = conn.cursor()
-            cursor.execute("SELECT DISTINCT symbol FROM bbo_data")
+            cursor.execute("SELECT DISTINCT symbol FROM bbo_data WHERE exchange = ?", (exchange,))
             exchange_tickers = [row[0] for row in cursor.fetchall()]
             tickers.update(exchange_tickers)
             conn.close()
@@ -84,8 +82,11 @@ def query_bbo_data(exchange: str, ticker: str, start_time: Optional[str] = None,
     try:
         conn = sqlite3.connect(db_path, timeout=10.0)
         
-        query = "SELECT timestamp, best_bid, best_ask, best_bid_size, best_ask_size FROM bbo_data WHERE symbol = ?"
-        params = [ticker]
+        query = (
+            "SELECT timestamp, best_bid, best_ask, best_bid_size, best_ask_size "
+            "FROM bbo_data WHERE exchange = ? AND symbol = ?"
+        )
+        params = [exchange_lower, ticker]
         
         if start_time:
             query += " AND timestamp >= ?"
@@ -660,4 +661,3 @@ if __name__ == '__main__':
     print(f"模板目录: {template_dir}")
     
     app.run(host='0.0.0.0', port=8700, debug=False)
-

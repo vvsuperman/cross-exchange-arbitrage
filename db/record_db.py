@@ -20,6 +20,8 @@ TZ_UTC8 = pytz.timezone("Asia/Shanghai")
 logger = logging.getLogger("record_db")
 logger.setLevel(logging.INFO)
 
+DEFAULT_BBO_DB_NAME = "exchange_bbo.db"
+
 
 class BBODataDB:
     """记录单个交易所的BBO数据到SQLite3数据库"""
@@ -33,7 +35,7 @@ class BBODataDB:
             db_dir = os.path.join(project_root, "logs")
 
         os.makedirs(db_dir, exist_ok=True)
-        self.db_path = os.path.join(db_dir, f"{self.exchange}_bbo.db")
+        self.db_path = os.path.join(db_dir, DEFAULT_BBO_DB_NAME)
         self.db_dir = db_dir
 
         self._initialize_database()

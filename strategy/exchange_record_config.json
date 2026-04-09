@@ -1,0 +1,37 @@
+{
+  "omni": [
+    {
+      "logical_symbol": "XAU",
+      "symbol": "XAUT",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/omni-trader-xau",
+      "path": "perpetual/XAUT",
+      "quantity": 1.0
+    }
+  ],
+  "tradexyz": [
+    {
+      "logical_symbol": "WTI",
+      "symbol": "CL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-wti",
+      "path": "?market=CL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "XAU",
+      "symbol": "GOLD",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-xau",
+      "path": "?market=GOLD&tab=positions",
+      "quantity": 1.0
+    }
+  ],
+  "lighter": [
+    {
+      "logical_symbol": "XAU",
+      "symbol": "XAU"
+    },
+    {
+      "logical_symbol": "WTI",
+      "symbol": "WTI"
+    }
+  ]
+}

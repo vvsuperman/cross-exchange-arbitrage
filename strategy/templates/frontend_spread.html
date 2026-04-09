@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni / trade.xyz 价差监控</title>
+    <title>Exchange 价差监控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
@@ -94,9 +94,25 @@
 <body>
     <div class="container">
         <div class="panel">
-            <h1>Omni / trade.xyz 价差监控</h1>
-            <p class="hint">价差1: trade.xyz bid - omni ask。价差2: omni bid - trade.xyz ask。</p>
+            <h1>Exchange 价差监控</h1>
+            <p class="hint">任选两个交易所，按 价差1 = 交易所2 bid - 交易所1 ask，价差2 = 交易所1 bid - 交易所2 ask 计算。</p>
             <div class="controls">
+                <div>
+                    <label for="exchange1">交易所1</label>
+                    <select id="exchange1" onchange="handleExchangeChange()">
+                        {% for exchange in exchange_options %}
+                        <option value="{{ exchange }}" {% if exchange == default_exchange1 %}selected{% endif %}>{{ exchange }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="exchange2">交易所2</label>
+                    <select id="exchange2" onchange="handleExchangeChange()">
+                        {% for exchange in exchange_options %}
+                        <option value="{{ exchange }}" {% if exchange == default_exchange2 %}selected{% endif %}>{{ exchange }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div>
                     <label for="ticker">标的</label>
                     <select id="ticker">
@@ -146,6 +162,12 @@
         let spreadChart = null;
         let priceChart = null;
 
+        function titleCaseExchange(value) {
+            if (!value) return '';
+            if (value === 'trade_xyz') return 'trade.xyz';
+            return value;
+        }
+
         function formatStats(containerId, stats) {
             const container = document.getElementById(containerId);
             if (!stats) {
@@ -163,15 +185,59 @@
             )).join('');
         }
 
+        async function refreshTickers(preferredTicker = '') {
+            const exchange1 = document.getElementById('exchange1').value;
+            const exchange2 = document.getElementById('exchange2').value;
+            const tickerSelect = document.getElementById('ticker');
+            const params = new URLSearchParams({ exchange1, exchange2 });
+            const response = await fetch(`/api/tickers?${params.toString()}`);
+            const data = await response.json();
+            if (!data.success) {
+                document.getElementById('error').textContent = data.message || '加载标的失败';
+                return false;
+            }
+
+            const tickers = data.tickers || [];
+            tickerSelect.innerHTML = tickers.map((ticker) => (
+                `<option value="${ticker}">${ticker}</option>`
+            )).join('');
+            if (preferredTicker && tickers.includes(preferredTicker)) {
+                tickerSelect.value = preferredTicker;
+            }
+            return tickers.length > 0;
+        }
+
+        async function handleExchangeChange() {
+            const exchange1 = document.getElementById('exchange1').value;
+            const exchange2 = document.getElementById('exchange2').value;
+            const errorBox = document.getElementById('error');
+            errorBox.textContent = '';
+            if (exchange1 === exchange2) {
+                errorBox.textContent = '请选择两个不同的交易所';
+                return;
+            }
+            const currentTicker = document.getElementById('ticker').value;
+            await refreshTickers(currentTicker);
+        }
+
         async function loadData() {
             const errorBox = document.getElementById('error');
             errorBox.textContent = '';
+
+            const exchange1 = document.getElementById('exchange1').value;
+            const exchange2 = document.getElementById('exchange2').value;
+            if (exchange1 === exchange2) {
+                errorBox.textContent = '请选择两个不同的交易所';
+                return;
+            }
 
             const ticker = document.getElementById('ticker').value;
             const startTime = document.getElementById('start_time').value;
             const endTime = document.getElementById('end_time').value;
 
             const params = new URLSearchParams({
+                exchange1,
+                exchange2,
                 ticker,
                 start_time: startTime,
                 end_time: endTime,
@@ -200,14 +266,14 @@
                     labels: data.timestamps,
                     datasets: [
                         {
-                            label: '价差1: trade.xyz bid - omni ask',
+                            label: `价差1: ${data.spread_1_label}`,
                             data: data.spread_1.map(value => value == null ? null : value * 100),
                             borderColor: '#2563eb',
                             pointRadius: 0,
                             tension: 0.15,
                         },
                         {
-                            label: '价差2: omni bid - trade.xyz ask',
+                            label: `价差2: ${data.spread_2_label}`,
                             data: data.spread_2.map(value => value == null ? null : value * 100),
                             borderColor: '#dc2626',
                             pointRadius: 0,
@@ -236,28 +302,28 @@
                 data: {
                     datasets: [
                         {
-                            label: 'Omni Bid',
+                            label: `${titleCaseExchange(data.exchange1)} Bid`,
                             data: data.exchange1_timestamps.map((ts, i) => ({ x: ts, y: data.exchange1_bid[i] })),
                             borderColor: '#0f766e',
                             pointRadius: 0,
                             tension: 0.15,
                         },
                         {
-                            label: 'Omni Ask',
+                            label: `${titleCaseExchange(data.exchange1)} Ask`,
                             data: data.exchange1_timestamps.map((ts, i) => ({ x: ts, y: data.exchange1_ask[i] })),
                             borderColor: '#14b8a6',
                             pointRadius: 0,
                             tension: 0.15,
                         },
                         {
-                            label: 'trade.xyz Bid',
+                            label: `${titleCaseExchange(data.exchange2)} Bid`,
                             data: data.exchange2_timestamps.map((ts, i) => ({ x: ts, y: data.exchange2_bid[i] })),
                             borderColor: '#7c3aed',
                             pointRadius: 0,
                             tension: 0.15,
                         },
                         {
-                            label: 'trade.xyz Ask',
+                            label: `${titleCaseExchange(data.exchange2)} Ask`,
                             data: data.exchange2_timestamps.map((ts, i) => ({ x: ts, y: data.exchange2_ask[i] })),
                             borderColor: '#a855f7',
                             pointRadius: 0,
@@ -277,7 +343,10 @@
             });
         }
 
-        loadData();
+        (async () => {
+            await refreshTickers(document.getElementById('ticker').value);
+            await loadData();
+        })();
     </script>
 </body>
 </html>

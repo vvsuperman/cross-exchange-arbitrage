@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 导出交易所 BBO 数据库中 bbo_data 表最近 N 小时的数据到 CSV 文件
-支持 edgex_bbo.db、lighter_bbo.db 等
 """
 import sqlite3
 import csv
@@ -17,7 +16,7 @@ def _has_exchange_column(cursor: sqlite3.Cursor) -> bool:
     return any(row[1] == "exchange" for row in cursor.fetchall())
 
 
-def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24):
+def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24, exchange: str = ""):
     """
     从数据库导出最近 N 小时的 BBO 数据到 CSV 文件
     
@@ -40,7 +39,7 @@ def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         # 从数据库文件名提取交易所名称
         db_name = os.path.basename(db_path)
-        exchange_name = db_name.replace('_bbo.db', '').replace('.db', '')
+        exchange_name = exchange or db_name.replace('_bbo.db', '').replace('.db', '')
         # 输出文件保存到数据库所在目录
         db_dir = os.path.dirname(os.path.abspath(db_path))
         output_csv = os.path.join(db_dir, f"{exchange_name}_bbo_data_{hours}hours_{timestamp}.csv")
@@ -80,6 +79,11 @@ def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24
         has_exchange_column = _has_exchange_column(cursor)
 
         selected_exchange = "exchange," if has_exchange_column else ""
+        exchange_filter = ""
+        query_params = [start_time_str, start_time_str]
+        if exchange:
+            exchange_filter = " AND exchange = ?"
+            query_params.append(exchange)
         
         # 先尝试使用索引查询（快速方式）
         rows = []
@@ -100,9 +104,10 @@ def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24
                     created_at
                 FROM bbo_data
                 WHERE (timestamp >= ? OR (timestamp IS NULL AND created_at >= ?))
+                {exchange_filter}
                 ORDER BY COALESCE(timestamp, created_at) ASC
             """
-            cursor.execute(query, (start_time_str, start_time_str))
+            cursor.execute(query, query_params)
             rows = cursor.fetchall()
             print(f"使用索引查询成功，找到 {len(rows)} 条记录")
         except sqlite3.DatabaseError as e:
@@ -145,6 +150,8 @@ def export_bbo_data_to_csv(db_path: str, output_csv: str = None, hours: int = 24
                     
                     # 在 Python 中过滤数据
                     for row in batch_rows:
+                        if exchange and has_exchange_column and row["exchange"] != exchange:
+                            continue
                         row_timestamp = row['timestamp']
                         row_created_at = row['created_at']
                         
@@ -297,12 +304,12 @@ def main():
         db_path = args.db
     else:
         # 根据交易所名称构建数据库路径，默认使用 ../data/ 目录
-        data_dir = os.path.join(os.path.dirname(script_dir), 'data')
-        db_path = os.path.join(data_dir, f'{args.exchange}_bbo.db')
+        data_dir = os.path.join(os.path.dirname(script_dir), 'logs')
+        db_path = os.path.join(data_dir, 'exchange_bbo.db')
         db_path = os.path.abspath(os.path.normpath(db_path))
     
     # 执行导出
-    export_bbo_data_to_csv(db_path, args.output, args.hours)
+    export_bbo_data_to_csv(db_path, args.output, args.hours, exchange=args.exchange)
 
 
 if __name__ == '__main__':

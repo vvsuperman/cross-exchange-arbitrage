@@ -24,27 +24,37 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 DB_DIR = os.path.join(PROJECT_ROOT, "logs")
 EXCHANGE_DB_MAP = {
-    "omni": os.path.join(DB_DIR, "omni_bbo.db"),
-    "trade_xyz": os.path.join(DB_DIR, "trade_xyz_bbo.db"),
+    "omni": os.path.join(DB_DIR, "exchange_bbo.db"),
+    "trade_xyz": os.path.join(DB_DIR, "exchange_bbo.db"),
+    "lighter": os.path.join(DB_DIR, "exchange_bbo.db"),
 }
 
 TZ_UTC8 = pytz.timezone("Asia/Shanghai")
 
 
-def get_available_tickers() -> List[str]:
+def get_available_tickers(exchanges: Optional[List[str]] = None) -> List[str]:
     tickers = set()
-    for db_path in EXCHANGE_DB_MAP.values():
+    db_path = EXCHANGE_DB_MAP["omni"]
+    selected_exchanges = exchanges or list(EXCHANGE_DB_MAP.keys())
+    for exchange in selected_exchanges:
         try:
             if not os.path.exists(db_path):
                 continue
             conn = sqlite3.connect(db_path, timeout=10.0)
             cursor = conn.cursor()
-            cursor.execute("SELECT DISTINCT symbol FROM bbo_data ORDER BY symbol")
+            cursor.execute(
+                "SELECT DISTINCT symbol FROM bbo_data WHERE exchange = ? ORDER BY symbol",
+                (exchange,),
+            )
             tickers.update(row[0] for row in cursor.fetchall() if row and row[0])
             conn.close()
         except Exception as exc:
             print(f"Error reading tickers from {db_path}: {exc}")
     return sorted(tickers)
+
+
+def get_exchange_options() -> List[str]:
+    return list(EXCHANGE_DB_MAP.keys())
 
 
 def query_bbo_data(exchange: str, ticker: str, start_time: Optional[str], end_time: Optional[str]) -> pd.DataFrame:
@@ -56,9 +66,9 @@ def query_bbo_data(exchange: str, ticker: str, start_time: Optional[str], end_ti
         conn = sqlite3.connect(db_path, timeout=10.0)
         query = (
             "SELECT timestamp, best_bid, best_ask, best_bid_size, best_ask_size "
-            "FROM bbo_data WHERE symbol = ?"
+            "FROM bbo_data WHERE exchange = ? AND symbol = ?"
         )
-        params = [ticker]
+        params = [exchange, ticker]
         if start_time:
             query += " AND timestamp >= ?"
             params.append(start_time)
@@ -163,24 +173,44 @@ def _convert_to_utc8_naive(value: Optional[str]) -> Optional[str]:
 
 @app.route("/")
 def index():
-    tickers = get_available_tickers() or ["XAU"]
+    exchange_options = get_exchange_options()
+    tickers = get_available_tickers(["omni", "trade_xyz"]) or ["XAU"]
     default_end = datetime.now()
     default_start = default_end - timedelta(hours=24)
     return render_template(
         "frontend_spread.html",
         tickers=tickers,
+        exchange_options=exchange_options,
+        default_exchange1="omni",
+        default_exchange2="trade_xyz",
         default_start=default_start.strftime("%Y-%m-%dT%H:%M"),
         default_end=default_end.strftime("%Y-%m-%dT%H:%M"),
     )
 
 
+@app.route("/api/tickers", methods=["GET"])
+def get_tickers():
+    exchange1 = request.args.get("exchange1", "omni").strip().lower()
+    exchange2 = request.args.get("exchange2", "trade_xyz").strip().lower()
+    invalid = [name for name in (exchange1, exchange2) if name not in EXCHANGE_DB_MAP]
+    if invalid:
+        return jsonify({"success": False, "message": f"Unsupported exchange: {invalid[0]}"})
+    tickers = get_available_tickers([exchange1, exchange2])
+    return jsonify({"success": True, "tickers": tickers})
+
+
 @app.route("/api/spread_data", methods=["GET"])
 def get_spread_data():
     ticker = request.args.get("ticker", "XAU").strip().upper()
-    exchange1 = "omni"
-    exchange2 = "trade_xyz"
+    exchange1 = request.args.get("exchange1", "omni").strip().lower()
+    exchange2 = request.args.get("exchange2", "trade_xyz").strip().lower()
     start_time = request.args.get("start_time")
     end_time = request.args.get("end_time")
+
+    if exchange1 not in EXCHANGE_DB_MAP or exchange2 not in EXCHANGE_DB_MAP:
+        return jsonify({"success": False, "message": "Unsupported exchange"})
+    if exchange1 == exchange2:
+        return jsonify({"success": False, "message": "Please choose two different exchanges"})
 
     if not start_time:
         start_time, end_time = _normalize_time_param(None, default_hours=24)
@@ -203,6 +233,8 @@ def get_spread_data():
         "ticker": ticker,
         "exchange1": exchange1,
         "exchange2": exchange2,
+        "spread_1_label": f"{exchange2} bid - {exchange1} ask",
+        "spread_2_label": f"{exchange1} bid - {exchange2} ask",
         "data_points": len(spread_df),
         "timestamps": timestamps,
         "spread_1": spread_df["spread_1"].replace({np.nan: None}).tolist(),

@@ -507,9 +507,7 @@ class BBORecorder:
     async def record_loop(self):
         """主记录循环 - 串行记录所有标的的数据"""
         logger.info(f"开始记录 {len(self.tickers)} 个标的的BBO数据，每{self.interval}秒采样一次...")
-        logger.info(f"EdgeX数据将保存到: logs/edgex_bbo.db (表: bbo_data)")
-        logger.info(f"Lighter数据将保存到: logs/lighter_bbo.db (表: bbo_data)")
-        # logger.info(f"Backpack数据将保存到: logs/backpack_bbo.db (表: bbo_data)")
+        logger.info("BBO数据将保存到: logs/exchange_bbo.db (表: bbo_data，按 exchange 字段区分)")
         logger.info(f"交易对列表: {', '.join(self.tickers)}")
         
         check_counter = 0  # 添加计数器

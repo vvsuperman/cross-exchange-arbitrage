@@ -38,10 +38,11 @@ import subprocess
 import signal
 import sys
 import time
-from typing import List
+from typing import Any, Dict, List
 
 try:
     from .frontend_arbitrage import (
+        MarketConfig,
         XYZ_TRADER_USER_DATA_DIR,
         XYZ_VIEWER_USER_DATA_DIR,
         TradeXyzSeleniumClient,
@@ -50,6 +51,7 @@ try:
     )
 except ImportError:
     from frontend_arbitrage import (
+        MarketConfig,
         XYZ_TRADER_USER_DATA_DIR,
         XYZ_VIEWER_USER_DATA_DIR,
         TradeXyzSeleniumClient,
@@ -246,11 +248,23 @@ def build_client(
     symbols: List[str],
     user_data_dir: str | None = None,
     dry_run: bool = True,
+    market_overrides: Dict[str, Dict[str, Any]] | None = None,
 ) -> TradeXyzSeleniumClient:
     """创建 trade.xyz 浏览器 client。"""
     site_configs = build_default_site_configs()
     driver = build_driver(user_data_dir=user_data_dir)
     config = site_configs["trade_xyz"]
+    normalized_overrides = {
+        symbol.upper(): data
+        for symbol, data in (market_overrides or {}).items()
+    }
+    for symbol, data in normalized_overrides.items():
+        existing = config.markets.get(symbol)
+        config.markets[symbol] = MarketConfig(
+            symbol=symbol,
+            path=str(data.get("path") or (existing.path if existing else f"?market={symbol}")),
+            quantity=float(data.get("quantity", existing.quantity if existing else 1.0)),
+        )
     config.markets = {
         symbol: market
         for symbol, market in config.markets.items()
