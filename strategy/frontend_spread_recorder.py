@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Iterable, Optional
 
+from selenium.common.exceptions import InvalidSessionIdException, WebDriverException
+
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
@@ -34,6 +36,7 @@ from exchanges.trade_xyz import (
 
 
 _SHUTDOWN_REQUESTED = False
+_MAX_SESSION_RECOVERY_ATTEMPTS = 3
 
 
 def _handle_shutdown(signum, _frame) -> None:
@@ -134,14 +137,7 @@ def _safe_quit_trade_xyz_client(client, profile: str) -> None:
     cleanup_trade_xyz_profile(profile, reason="strategy_recorder_quit")
 
 
-def main() -> int:
-    global _SHUTDOWN_REQUESTED
-    config = parse_args()
-    install_signal_handlers()
-
-    cleanup_omni_profile(config.omni_user_data_dir, reason="strategy_recorder_start")
-    cleanup_trade_xyz_profile(config.trade_xyz_user_data_dir, reason="strategy_recorder_start")
-
+def _start_clients(config: RecorderConfig) -> tuple:
     omni_client = build_omni_client(
         [config.omni_symbol],
         user_data_dir=config.omni_user_data_dir,
@@ -153,17 +149,44 @@ def main() -> int:
         dry_run=True,
     )
 
+    print(f"[frontend_spread_recorder] opening Omni market: {config.omni_symbol}")
+    omni_client.open_market_tabs()
+    omni_client.install_quote_cache()
+    print(f"[frontend_spread_recorder] opening trade.xyz market: {config.trade_xyz_symbol}")
+    trade_xyz_client.open_market_tabs()
+    trade_xyz_client.install_quote_cache()
+    return omni_client, trade_xyz_client
+
+
+def _is_driver_session_error(exc: Exception) -> bool:
+    if isinstance(exc, InvalidSessionIdException):
+        return True
+    if isinstance(exc, WebDriverException):
+        message = str(exc).lower()
+        return (
+            "invalid session id" in message
+            or "disconnected" in message
+            or "not connected to devtools" in message
+            or "chrome not reachable" in message
+            or "target window already closed" in message
+        )
+    return False
+
+
+def main() -> int:
+    global _SHUTDOWN_REQUESTED
+    config = parse_args()
+    install_signal_handlers()
+
+    cleanup_omni_profile(config.omni_user_data_dir, reason="strategy_recorder_start")
+    cleanup_trade_xyz_profile(config.trade_xyz_user_data_dir, reason="strategy_recorder_start")
+
+    omni_client, trade_xyz_client = _start_clients(config)
+
     omni_db = BBODataDB(exchange="omni", ticker=config.logical_symbol)
     trade_xyz_db = BBODataDB(exchange="trade_xyz", ticker=config.logical_symbol)
 
     try:
-        print(f"[frontend_spread_recorder] opening Omni market: {config.omni_symbol}")
-        omni_client.open_market_tabs()
-        omni_client.install_quote_cache()
-        print(f"[frontend_spread_recorder] opening trade.xyz market: {config.trade_xyz_symbol}")
-        trade_xyz_client.open_market_tabs()
-        trade_xyz_client.install_quote_cache()
-
         if config.auto_connect_omni:
             run_omni_auto_connect_flow(
                 omni_client,
@@ -176,9 +199,33 @@ def main() -> int:
             )
 
         started = time.time()
+        recovery_attempts = 0
         while not _SHUTDOWN_REQUESTED:
-            omni_snapshots = [omni_client.capture_cached_quote(persist=False)]
-            trade_xyz_snapshots = [trade_xyz_client.capture_cached_quote(persist=False)]
+            try:
+                omni_snapshots = [omni_client.capture_cached_quote(persist=False)]
+                trade_xyz_snapshots = [trade_xyz_client.capture_cached_quote(persist=False)]
+            except Exception as exc:
+                if not _is_driver_session_error(exc):
+                    raise
+                recovery_attempts += 1
+                print(
+                    "[frontend_spread_recorder] webdriver session dropped "
+                    f"(attempt {recovery_attempts}/{_MAX_SESSION_RECOVERY_ATTEMPTS}): {exc}"
+                )
+                if recovery_attempts > _MAX_SESSION_RECOVERY_ATTEMPTS:
+                    print("[frontend_spread_recorder] exceeded webdriver recovery attempts; exiting")
+                    return 1
+
+                safe_quit_omni_client(omni_client)
+                _safe_quit_trade_xyz_client(trade_xyz_client, config.trade_xyz_user_data_dir)
+                cleanup_omni_profile(config.omni_user_data_dir, reason="strategy_recorder_recover")
+                cleanup_trade_xyz_profile(config.trade_xyz_user_data_dir, reason="strategy_recorder_recover")
+
+                time.sleep(2.0)
+                omni_client, trade_xyz_client = _start_clients(config)
+                continue
+
+            recovery_attempts = 0
 
             _persist_snapshots(omni_db, config.logical_symbol, omni_snapshots)
             _persist_snapshots(trade_xyz_db, config.logical_symbol, trade_xyz_snapshots)
