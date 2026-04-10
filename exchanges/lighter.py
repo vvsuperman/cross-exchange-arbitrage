@@ -131,10 +131,9 @@ class LighterClient(BaseExchangeClient):
         if self.lighter_client is None:
             try:
                 self.lighter_client = SignerClient(
-                    url=self.base_url,
-                    private_key=self.api_key_private_key,
-                    api_key_index=self.api_key_index,
-                    account_index=self.account_index,
+                    self.base_url,
+                    self.account_index,
+                    {self.api_key_index: self.api_key_private_key},
                 )
                 # Stabilize aiohttp client behavior on some servers.
                 await self._configure_lighter_http_client(self.lighter_client.api_client)

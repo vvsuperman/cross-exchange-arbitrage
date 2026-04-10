@@ -311,10 +311,9 @@ class EdgexArb:
                 raise Exception("API_KEY_PRIVATE_KEY environment variable not set")
 
             self.lighter_client = SignerClient(
-                url=self.lighter_base_url,
-                private_key=api_key_private_key,
-                account_index=self.account_index,
-                api_key_index=self.api_key_index,
+                self.lighter_base_url,
+                self.account_index,
+                {self.api_key_index: api_key_private_key},
             )
 
             err = self.lighter_client.check_client()
