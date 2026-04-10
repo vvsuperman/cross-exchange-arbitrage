@@ -198,7 +198,7 @@ class TickerRecorder:
             # 获取EdgeX的BBO数据 - 从共享的WebSocket manager获取
             edgex_bid, edgex_bid_size, edgex_ask, edgex_ask_size, edgex_price_timestamp = None, None, None, None, None
             if self.edgex_ws_manager:
-                edgex_bid, edgex_bid_size, edgex_ask, edgex_ask_size, edgex_price_timestamp = self.edgex_ws_manager.get_ticker_data(self.ticker)
+                edgex_bid, edgex_bid_size, edgex_ask, edgex_ask_size, edgex_price_timestamp, _ = self.edgex_ws_manager.get_ticker_data(self.ticker)
             
             # 如果WebSocket数据不可用，回退到REST API
             if edgex_bid is None or edgex_ask is None:
@@ -213,7 +213,7 @@ class TickerRecorder:
             # 获取Lighter的BBO数据 - 从共享的WebSocket manager获取
             lighter_bid, lighter_bid_size, lighter_ask, lighter_ask_size, lighter_price_timestamp = None, None, None, None, None
             if self.lighter_ws_manager:
-                lighter_bid, lighter_bid_size, lighter_ask, lighter_ask_size, lighter_price_timestamp = self.lighter_ws_manager.get_ticker_data(self.ticker)
+                lighter_bid, lighter_bid_size, lighter_ask, lighter_ask_size, lighter_price_timestamp, _ = self.lighter_ws_manager.get_ticker_data(self.ticker)
             
             # 如果WebSocket数据不可用，回退到REST API
             # if lighter_bid is None or lighter_ask is None:

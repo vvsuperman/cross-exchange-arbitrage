@@ -27,10 +27,26 @@
             margin-bottom: 20px;
         }
         .controls {
+            display: block;
+            max-width: 900px;
+        }
+        .control-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 16px;
             align-items: end;
+            margin-bottom: 16px;
+        }
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+        .control-row--actions {
+            grid-template-columns: auto;
+        }
+        @media (max-width: 640px) {
+            .control-row {
+                grid-template-columns: 1fr;
+            }
         }
         label {
             display: block;
@@ -97,48 +113,54 @@
             <h1>Exchange 价差监控</h1>
             <p class="hint">任选两个交易所或同交易所不同标的，按 价差1 = 交易所2 bid - 交易所1 ask，价差2 = 交易所1 bid - 交易所2 ask 计算。</p>
             <div class="controls">
-                <div>
-                    <label for="exchange1">交易所1</label>
-                    <select id="exchange1" onchange="handleExchangeChange()">
-                        {% for exchange in exchange_options %}
-                        <option value="{{ exchange }}" {% if exchange == default_exchange1 %}selected{% endif %}>{{ exchange }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="control-row">
+                    <div>
+                        <label for="exchange1">交易所1</label>
+                        <select id="exchange1" onchange="handleExchangeChange()">
+                            {% for exchange in exchange_options %}
+                            <option value="{{ exchange }}" {% if exchange == default_exchange1 %}selected{% endif %}>{{ exchange }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="symbol1">交易所1标的</label>
+                        <select id="symbol1">
+                            {% for t in exchange1_symbols %}
+                            <option value="{{ t }}" {% if t == default_symbol1 %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label for="exchange2">交易所2</label>
-                    <select id="exchange2" onchange="handleExchangeChange()">
-                        {% for exchange in exchange_options %}
-                        <option value="{{ exchange }}" {% if exchange == default_exchange2 %}selected{% endif %}>{{ exchange }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="control-row">
+                    <div>
+                        <label for="exchange2">交易所2</label>
+                        <select id="exchange2" onchange="handleExchangeChange()">
+                            {% for exchange in exchange_options %}
+                            <option value="{{ exchange }}" {% if exchange == default_exchange2 %}selected{% endif %}>{{ exchange }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="symbol2">交易所2标的</label>
+                        <select id="symbol2">
+                            {% for t in exchange2_symbols %}
+                            <option value="{{ t }}" {% if t == default_symbol2 %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label for="symbol1">交易所1标的</label>
-                    <select id="symbol1">
-                        {% for t in exchange1_symbols %}
-                        <option value="{{ t }}" {% if t == default_symbol1 %}selected{% endif %}>{{ t }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="control-row">
+                    <div>
+                        <label for="start_time">开始时间</label>
+                        <input type="datetime-local" id="start_time" value="{{ default_start }}">
+                    </div>
+                    <div>
+                        <label for="end_time">结束时间</label>
+                        <input type="datetime-local" id="end_time" value="{{ default_end }}">
+                    </div>
                 </div>
-                <div>
-                    <label for="symbol2">交易所2标的</label>
-                    <select id="symbol2">
-                        {% for t in exchange2_symbols %}
-                        <option value="{{ t }}" {% if t == default_symbol2 %}selected{% endif %}>{{ t }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    <label for="start_time">开始时间</label>
-                    <input type="datetime-local" id="start_time" value="{{ default_start }}">
-                </div>
-                <div>
-                    <label for="end_time">结束时间</label>
-                    <input type="datetime-local" id="end_time" value="{{ default_end }}">
-                </div>
-                <div>
-                    <button onclick="loadData()">加载数据</button>
+                <div class="control-row control-row--actions">
+                    <button type="button" onclick="loadData()">加载数据</button>
                 </div>
             </div>
             <div id="error" class="error"></div>

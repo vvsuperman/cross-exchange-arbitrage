@@ -93,37 +93,39 @@ class EdgeXMultiTickerWebSocketManager:
             }
         self.contract_to_ticker[contract_id] = ticker
         
-    def get_ticker_data(self, ticker: str) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str]]:
-        """获取指定ticker的BBO数据"""
+    def get_ticker_data(
+        self, ticker: str
+    ) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str], Optional[float]]:
+        """获取指定ticker的BBO数据。最后一项为交易所消息时间戳毫秒数（仅部分源可用，否则为 None）。"""
         if ticker not in self.ticker_data:
-            return None, None, None, None, None
-        
+            return None, None, None, None, None, None
+
         data = self.ticker_data[ticker]
-        
+
         # 检查是否就绪
-        if not data['ready']:
-            return None, None, None, None, None
-        
+        if not data["ready"]:
+            return None, None, None, None, None, None
+
         # 检查数据是否过期
-        if data['last_message_time']:
-            time_since_last_msg = (datetime.now(TZ_UTC8) - data['last_message_time']).total_seconds()
+        if data["last_message_time"]:
+            time_since_last_msg = (datetime.now(TZ_UTC8) - data["last_message_time"]).total_seconds()
             if time_since_last_msg > self.websocket_stale_threshold:
                 self.logger.warning(
-                    f"{ticker} EdgeX WebSocket数据已过期: "
-                    f"距离上次消息 {time_since_last_msg:.1f} 秒"
+                    f"{ticker} EdgeX WebSocket数据已过期: 距离上次消息 {time_since_last_msg:.1f} 秒"
                 )
                 self.request_reconnect(
                     reason=f"{ticker} EdgeX WebSocket数据已过期",
-                    force=False
+                    force=False,
                 )
-                return None, None, None, None, None
-        
+                return None, None, None, None, None, None
+
         return (
-            data['best_bid'],
-            data['best_bid_size'],
-            data['best_ask'],
-            data['best_ask_size'],
-            data['price_timestamp']
+            data["best_bid"],
+            data["best_bid_size"],
+            data["best_ask"],
+            data["best_ask_size"],
+            data["price_timestamp"],
+            None,
         )
 
     def request_reconnect(self, reason: str = "", force: bool = False) -> bool:
@@ -530,8 +532,11 @@ class LighterMultiTickerWebSocketManager:
                 'order_book': {"bids": [], "asks": []},
                 'best_bid': None,
                 'best_ask': None,
+                'best_bid_size': None,
+                'best_ask_size': None,
                 'order_book_offset': None,
                 'price_timestamp': None,
+                'exchange_ts_ms': None,
                 'ready': False,
                 'snapshot_loaded': False
             }
@@ -618,13 +623,15 @@ class LighterMultiTickerWebSocketManager:
         order_book["bids"].sort(key=lambda x: Decimal(x.get('price', 0)), reverse=True)
         order_book["asks"].sort(key=lambda x: Decimal(x.get('price', float('inf'))))
     
-    def get_ticker_data(self, ticker: str) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str]]:
-        """获取指定ticker的BBO数据"""
+    def get_ticker_data(
+        self, ticker: str
+    ) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str], Optional[float]]:
+        """获取指定ticker的BBO数据。exchange_ts_ms 为 Lighter 消息里的 timestamp 字段（毫秒 UTC）。"""
         if ticker not in self.ticker_data:
-            return None, None, None, None, None
-        
+            return None, None, None, None, None, None
+
         data = self.ticker_data[ticker]
-        
+
         # 检查是否就绪
         if not data['ready'] or not data['best_bid'] or not data['best_ask']:
             # 添加调试日志
@@ -634,27 +641,35 @@ class LighterMultiTickerWebSocketManager:
                 bids_list = data['order_book'].get('bids', [])
                 asks_list = data['order_book'].get('asks', [])
                 self.logger.debug(f"{ticker} Lighter WebSocket数据不完整: best_bid={data['best_bid']}, best_ask={data['best_ask']}, bids_count={len(bids_list)}, asks_count={len(asks_list)}")
-            return None, None, None, None, None
-        
+            return None, None, None, None, None, None
+
         best_bid = Decimal(str(data['best_bid']))
         best_ask = Decimal(str(data['best_ask']))
         
         # 从orderbook中获取对应的size（bids降序，asks升序，直接取第一个元素）
         bids_list = data['order_book'].get('bids', [])
         asks_list = data['order_book'].get('asks', [])
-        
-        best_bid_size = None
-        best_ask_size = None
-        
-        if bids_list:
-            # bids是降序排列，第一个就是best_bid
+
+        best_bid_size = data.get('best_bid_size')
+        if best_bid_size is not None:
+            best_bid_size = Decimal(str(best_bid_size))
+        elif bids_list:
             best_bid_size = Decimal(str(bids_list[0]['size']))
-        
-        if asks_list:
-            # asks是升序排列，第一个就是best_ask
+
+        best_ask_size = data.get('best_ask_size')
+        if best_ask_size is not None:
+            best_ask_size = Decimal(str(best_ask_size))
+        elif asks_list:
             best_ask_size = Decimal(str(asks_list[0]['size']))
-        
-        return best_bid, best_bid_size, best_ask, best_ask_size, data['price_timestamp']
+
+        ex_ms = data.get("exchange_ts_ms")
+        if ex_ms is not None:
+            try:
+                ex_ms = float(ex_ms)
+            except (TypeError, ValueError):
+                ex_ms = None
+
+        return best_bid, best_bid_size, best_ask, best_ask_size, data['price_timestamp'], ex_ms
 
     def request_reconnect(self, reason: str = "", force: bool = False) -> bool:
         """请求一次重连（节流，避免频繁重连）"""
@@ -729,8 +744,14 @@ class LighterMultiTickerWebSocketManager:
                             "type": "subscribe",
                             "channel": f"order_book/{market_index}"
                         }))
-                        self.logger.info(f"Lighter 订阅 {ticker} (market_index: {market_index})")
-                    
+                        self.logger.info(f"Lighter 订阅 order_book {ticker} (market_index: {market_index})")
+                    for market_index, ticker in self.market_to_ticker.items():
+                        await self.ws.send(json.dumps({
+                            "type": "subscribe",
+                            "channel": f"ticker/{market_index}"
+                        }))
+                        self.logger.info(f"Lighter 订阅 ticker(BBO) {ticker} (market_index: {market_index})")
+
                     self.running = True
                     reconnect_delay = 1
                     self.logger.info("✅ Lighter WebSocket连接成功")
@@ -770,10 +791,106 @@ class LighterMultiTickerWebSocketManager:
                 break
             
             reconnect_delay = min(max_reconnect_delay, reconnect_delay * 2)
+
+    def _apply_ticker_channel_bbo(self, ticker: str, data: dict) -> None:
+        """Lighter 官方 BBO：`ticker/{id}` 的 update/ticker（文档：随 nonce 推送最优买卖）。 """
+        ticker_info = self.ticker_data[ticker]
+        tk = data.get("ticker") or {}
+        bid = tk.get("b") or {}
+        ask = tk.get("a") or {}
+        bid_px = bid.get("price")
+        ask_px = ask.get("price")
+        if bid_px is None or ask_px is None:
+            return
+
+        bid_sz = bid.get("size")
+        ask_sz = ask.get("size")
+        ticker_info["best_bid"] = Decimal(str(bid_px))
+        ticker_info["best_ask"] = Decimal(str(ask_px))
+        ticker_info["best_bid_size"] = Decimal(str(bid_sz)) if bid_sz is not None else None
+        ticker_info["best_ask_size"] = Decimal(str(ask_sz)) if ask_sz is not None else None
+
+        timestamp = data.get("timestamp")
+        if timestamp:
+            if isinstance(timestamp, (int, float)):
+                dt = datetime.fromtimestamp(timestamp / 1000.0, tz=pytz.UTC)
+                ticker_info["price_timestamp"] = format_timestamp_to_seconds(dt.astimezone(TZ_UTC8))
+            else:
+                try:
+                    dt = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+                    if dt.tzinfo is None:
+                        dt = pytz.UTC.localize(dt)
+                    ticker_info["price_timestamp"] = format_timestamp_to_seconds(dt.astimezone(TZ_UTC8))
+                except Exception:
+                    ticker_info["price_timestamp"] = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
+        else:
+            ticker_info["price_timestamp"] = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
+
+        raw_ts = data.get("timestamp")
+        try:
+            ticker_info["exchange_ts_ms"] = float(raw_ts) if raw_ts is not None else None
+        except (TypeError, ValueError):
+            ticker_info["exchange_ts_ms"] = None
+
+        if ticker_info["best_bid"] and ticker_info["best_ask"]:
+            if not ticker_info["ready"]:
+                self.logger.info(
+                    "%s Lighter ticker 通道 BBO 就绪 bid=%s ask=%s",
+                    ticker,
+                    ticker_info["best_bid"],
+                    ticker_info["best_ask"],
+                )
+            ticker_info["ready"] = True
+            if self.redis_client:
+                try:
+                    receive_ts = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
+                    exchange_ts_ms = None
+                    if data.get("timestamp") is not None:
+                        try:
+                            exchange_ts_ms = float(data["timestamp"])
+                        except (ValueError, TypeError):
+                            pass
+                    ob_offset = ticker_info.get("order_book_offset")
+                    self.redis_client.store_latest_bbo(
+                        "lighter",
+                        ticker,
+                        ticker_info["best_bid"],
+                        ticker_info.get("best_bid_size"),
+                        ticker_info["best_ask"],
+                        ticker_info.get("best_ask_size"),
+                        ticker_info.get("price_timestamp"),
+                        timestamp=receive_ts,
+                        lighter_exchange_ts_ms=exchange_ts_ms,
+                        lighter_offset=int(ob_offset) if ob_offset is not None else None,
+                    )
+                except Exception as exc:
+                    self.logger.debug("Lighter Redis存储失败 [%s]: %s", ticker, exc)
+        else:
+            ticker_info["ready"] = False
     
     async def _handle_message(self, data: dict):
         """处理WebSocket消息"""
+        if data.get("type") == "ping":
+            if self.ws:
+                try:
+                    await self.ws.send(json.dumps({"type": "pong"}))
+                except Exception as exc:
+                    self.logger.debug("Lighter pong send failed: %s", exc)
+            return
+
         channel = data.get("channel", "")
+
+        if channel.startswith("ticker:"):
+            try:
+                market_index = int(channel.split(":")[1])
+            except (ValueError, IndexError):
+                return
+            ticker = self.market_to_ticker.get(market_index)
+            if not ticker or ticker not in self.ticker_data:
+                return
+            if data.get("type") in ("update/ticker", "subscribed/ticker"):
+                self._apply_ticker_channel_bbo(ticker, data)
+            return
         
         # 处理order_book更新
         if channel.startswith("order_book:"):
@@ -864,6 +981,15 @@ class LighterMultiTickerWebSocketManager:
                 ticker_info['best_ask'] = Decimal(str(asks_list[0]['price']))
             else:
                 ticker_info['best_ask'] = None
+
+            if bids_list:
+                ticker_info["best_bid_size"] = Decimal(str(bids_list[0]["size"]))
+            else:
+                ticker_info["best_bid_size"] = None
+            if asks_list:
+                ticker_info["best_ask_size"] = Decimal(str(asks_list[0]["size"]))
+            else:
+                ticker_info["best_ask_size"] = None
             
             # 更新时间戳
             timestamp = data.get("timestamp", None)
@@ -883,6 +1009,12 @@ class LighterMultiTickerWebSocketManager:
                         ticker_info['price_timestamp'] = str(timestamp)
             else:
                 ticker_info['price_timestamp'] = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
+
+            raw_ts = data.get("timestamp")
+            try:
+                ticker_info["exchange_ts_ms"] = float(raw_ts) if raw_ts is not None else None
+            except (TypeError, ValueError):
+                ticker_info["exchange_ts_ms"] = None
             
             # 更新ready状态：只有当best_bid和best_ask都存在时才设置为True
             # 如果任何一个为None，则设置为False
@@ -894,13 +1026,9 @@ class LighterMultiTickerWebSocketManager:
                 # 如果价格数据完整，立即存储到Redis（含exchange_ts_ms、offset，条件写）
                 if self.redis_client:
                     try:
-                        best_bid_size = None
-                        best_ask_size = None
-                        if bids_list:
-                            best_bid_size = Decimal(str(bids_list[0]['size']))
-                        if asks_list:
-                            best_ask_size = Decimal(str(asks_list[0]['size']))
-                        
+                        best_bid_size = ticker_info.get("best_bid_size")
+                        best_ask_size = ticker_info.get("best_ask_size")
+
                         receive_ts = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
                         exchange_ts_ms = None
                         if data.get("timestamp") is not None:
@@ -1025,23 +1153,26 @@ class BackpackMultiTickerWebSocketManager:
             }
         self.contract_to_ticker[contract_id] = ticker
     
-    def get_ticker_data(self, ticker: str) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str]]:
-        """获取指定ticker的BBO数据"""
+    def get_ticker_data(
+        self, ticker: str
+    ) -> Tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[Decimal], Optional[str], Optional[float]]:
+        """获取指定ticker的BBO数据。"""
         if ticker not in self.ticker_data:
-            return None, None, None, None, None
-        
+            return None, None, None, None, None, None
+
         data = self.ticker_data[ticker]
-        
+
         # 检查是否就绪
         if not data['ready'] or not data['best_bid'] or not data['best_ask']:
-            return None, None, None, None, None
-        
+            return None, None, None, None, None, None
+
         return (
             data['best_bid'],
             data['best_bid_size'],
             data['best_ask'],
             data['best_ask_size'],
-            data['price_timestamp']
+            data['price_timestamp'],
+            None,
         )
     
     async def connect(self):

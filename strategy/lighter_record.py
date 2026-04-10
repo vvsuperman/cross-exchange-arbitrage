@@ -10,6 +10,7 @@ import logging
 import os
 import signal
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -84,6 +85,35 @@ class LighterRecorderApp:
         self.ws_manager: Optional[LighterMultiTickerWebSocketManager] = None
         self.runtimes: list[LighterTargetRuntime] = []
 
+    def _symbol_bbo_ready(self, symbol: str) -> bool:
+        if self.ws_manager is None:
+            return False
+        row = self.ws_manager.ticker_data.get(symbol)
+        if not row:
+            return False
+        return bool(
+            row.get("ready")
+            and row.get("best_bid") is not None
+            and row.get("best_ask") is not None
+        )
+
+    async def _await_bbo_ready(self, timeout_s: float = 30.0) -> None:
+        """Wait until each target has snapshot + best bid/ask (same readiness as get_ticker_data)."""
+        if self.ws_manager is None or not self.runtimes:
+            return
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            if all(self._symbol_bbo_ready(rt.config.symbol) for rt in self.runtimes):
+                logger.info("lighter websocket BBO ready for all %s targets", len(self.runtimes))
+                return
+            await asyncio.sleep(0.25)
+        pending = [rt.config.symbol for rt in self.runtimes if not self._symbol_bbo_ready(rt.config.symbol)]
+        logger.warning(
+            "lighter BBO not ready after %.0fs for: %s; continuing (check WS / auth / market)",
+            timeout_s,
+            ", ".join(pending) if pending else "(unknown)",
+        )
+
     async def initialize(self) -> None:
         lighter_client_instance = None
         lighter_account_index = None
@@ -137,17 +167,27 @@ class LighterRecorderApp:
             logger,
         )
         await self.ws_manager.subscribe_all(ticker_names, market_indexes)
+        await self._await_bbo_ready()
 
     async def record_once(self) -> None:
         if self.ws_manager is None:
             raise RuntimeError("lighter websocket manager not initialized")
 
-        timestamp = format_timestamp_to_seconds(datetime.now(TZ_UTC8))
         for runtime in self.runtimes:
-            bid, bid_size, ask, ask_size, price_timestamp = self.ws_manager.get_ticker_data(runtime.config.symbol)
+            local_dt = datetime.now(TZ_UTC8)
+            timestamp = format_timestamp_to_seconds(local_dt)
+            local_ms = int(local_dt.timestamp() * 1000)
+
+            bid, bid_size, ask, ask_size, price_timestamp, exchange_ts_ms = self.ws_manager.get_ticker_data(
+                runtime.config.symbol
+            )
             if bid is None or ask is None:
                 logger.warning("lighter data not ready symbol=%s", runtime.config.symbol)
                 continue
+
+            gap_ms: Optional[int] = None
+            if exchange_ts_ms is not None:
+                gap_ms = int(local_ms - float(exchange_ts_ms))
 
             runtime.db.log_bbo_data(
                 best_bid=bid,
@@ -159,13 +199,14 @@ class LighterRecorderApp:
                 symbol=runtime.config.logical_symbol,
             )
             logger.info(
-                "[lighter:%s] symbol=%s ask=%s bid=%s ask_qty=%s bid_qty=%s",
+                "[lighter:%s] symbol=%s ask=%s bid=%s ask_qty=%s bid_qty=%s gap_ms=%s",
                 runtime.config.logical_symbol,
                 runtime.config.symbol,
                 ask,
                 bid,
                 ask_size,
                 bid_size,
+                gap_ms if gap_ms is not None else "n/a",
             )
 
     async def run(self) -> int:
