@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Spread visualization app for Omni vs trade.xyz frontend quotes."""
+"""Spread visualization app for arbitrary exchange-symbol pairs."""
 
 from __future__ import annotations
 
@@ -32,32 +32,30 @@ EXCHANGE_DB_MAP = {
 TZ_UTC8 = pytz.timezone("Asia/Shanghai")
 
 
-def get_available_tickers(exchanges: Optional[List[str]] = None) -> List[str]:
-    tickers = set()
+def get_available_symbols(exchange: str) -> List[str]:
+    symbols = set()
     db_path = EXCHANGE_DB_MAP["omni"]
-    selected_exchanges = exchanges or list(EXCHANGE_DB_MAP.keys())
-    for exchange in selected_exchanges:
-        try:
-            if not os.path.exists(db_path):
-                continue
-            conn = sqlite3.connect(db_path, timeout=10.0)
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT DISTINCT symbol FROM bbo_data WHERE exchange = ? ORDER BY symbol",
-                (exchange,),
-            )
-            tickers.update(row[0] for row in cursor.fetchall() if row and row[0])
-            conn.close()
-        except Exception as exc:
-            print(f"Error reading tickers from {db_path}: {exc}")
-    return sorted(tickers)
+    try:
+        if not os.path.exists(db_path):
+            return []
+        conn = sqlite3.connect(db_path, timeout=10.0)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT DISTINCT symbol FROM bbo_data WHERE exchange = ? ORDER BY symbol",
+            (exchange,),
+        )
+        symbols.update(row[0] for row in cursor.fetchall() if row and row[0])
+        conn.close()
+    except Exception as exc:
+        print(f"Error reading symbols from {db_path}: {exc}")
+    return sorted(symbols)
 
 
 def get_exchange_options() -> List[str]:
     return list(EXCHANGE_DB_MAP.keys())
 
 
-def query_bbo_data(exchange: str, ticker: str, start_time: Optional[str], end_time: Optional[str]) -> pd.DataFrame:
+def query_bbo_data(exchange: str, symbol: str, start_time: Optional[str], end_time: Optional[str]) -> pd.DataFrame:
     db_path = EXCHANGE_DB_MAP.get(exchange)
     if not db_path or not os.path.exists(db_path):
         return pd.DataFrame()
@@ -68,7 +66,7 @@ def query_bbo_data(exchange: str, ticker: str, start_time: Optional[str], end_ti
             "SELECT timestamp, best_bid, best_ask, best_bid_size, best_ask_size "
             "FROM bbo_data WHERE exchange = ? AND symbol = ?"
         )
-        params = [exchange, ticker]
+        params = [exchange, symbol]
         if start_time:
             query += " AND timestamp >= ?"
             params.append(start_time)
@@ -174,52 +172,54 @@ def _convert_to_utc8_naive(value: Optional[str]) -> Optional[str]:
 @app.route("/")
 def index():
     exchange_options = get_exchange_options()
-    tickers = get_available_tickers(["omni", "trade_xyz"]) or ["XAU"]
+    default_exchange1 = "omni"
+    default_exchange2 = "trade_xyz"
+    exchange1_symbols = get_available_symbols(default_exchange1) or ["XAU"]
+    exchange2_symbols = get_available_symbols(default_exchange2) or ["XAU"]
     default_end = datetime.now()
     default_start = default_end - timedelta(hours=24)
     return render_template(
         "frontend_spread.html",
-        tickers=tickers,
         exchange_options=exchange_options,
-        default_exchange1="omni",
-        default_exchange2="trade_xyz",
+        default_exchange1=default_exchange1,
+        default_exchange2=default_exchange2,
+        default_symbol1=exchange1_symbols[0],
+        default_symbol2=exchange2_symbols[0],
+        exchange1_symbols=exchange1_symbols,
+        exchange2_symbols=exchange2_symbols,
         default_start=default_start.strftime("%Y-%m-%dT%H:%M"),
         default_end=default_end.strftime("%Y-%m-%dT%H:%M"),
     )
 
 
-@app.route("/api/tickers", methods=["GET"])
-def get_tickers():
-    exchange1 = request.args.get("exchange1", "omni").strip().lower()
-    exchange2 = request.args.get("exchange2", "trade_xyz").strip().lower()
-    invalid = [name for name in (exchange1, exchange2) if name not in EXCHANGE_DB_MAP]
-    if invalid:
-        return jsonify({"success": False, "message": f"Unsupported exchange: {invalid[0]}"})
-    tickers = get_available_tickers([exchange1, exchange2])
-    return jsonify({"success": True, "tickers": tickers})
+@app.route("/api/symbols", methods=["GET"])
+def get_symbols():
+    exchange = request.args.get("exchange", "omni").strip().lower()
+    if exchange not in EXCHANGE_DB_MAP:
+        return jsonify({"success": False, "message": f"Unsupported exchange: {exchange}"})
+    symbols = get_available_symbols(exchange)
+    return jsonify({"success": True, "symbols": symbols})
 
 
 @app.route("/api/spread_data", methods=["GET"])
 def get_spread_data():
-    ticker = request.args.get("ticker", "XAU").strip().upper()
     exchange1 = request.args.get("exchange1", "omni").strip().lower()
     exchange2 = request.args.get("exchange2", "trade_xyz").strip().lower()
+    symbol1 = request.args.get("symbol1", "XAU").strip().upper()
+    symbol2 = request.args.get("symbol2", "XAU").strip().upper()
     start_time = request.args.get("start_time")
     end_time = request.args.get("end_time")
 
     if exchange1 not in EXCHANGE_DB_MAP or exchange2 not in EXCHANGE_DB_MAP:
         return jsonify({"success": False, "message": "Unsupported exchange"})
-    if exchange1 == exchange2:
-        return jsonify({"success": False, "message": "Please choose two different exchanges"})
-
     if not start_time:
         start_time, end_time = _normalize_time_param(None, default_hours=24)
     else:
         start_time = _convert_to_utc8_naive(start_time)
         end_time = _convert_to_utc8_naive(end_time)
 
-    df1 = query_bbo_data(exchange1, ticker, start_time, end_time)
-    df2 = query_bbo_data(exchange2, ticker, start_time, end_time)
+    df1 = query_bbo_data(exchange1, symbol1, start_time, end_time)
+    df2 = query_bbo_data(exchange2, symbol2, start_time, end_time)
     merged_df = merge_and_resample_data(df1, df2, exchange1, exchange2)
 
     if merged_df.empty:
@@ -230,9 +230,10 @@ def get_spread_data():
 
     result: Dict[str, object] = {
         "success": True,
-        "ticker": ticker,
         "exchange1": exchange1,
         "exchange2": exchange2,
+        "symbol1": symbol1,
+        "symbol2": symbol2,
         "spread_1_label": f"{exchange2} bid - {exchange1} ask",
         "spread_2_label": f"{exchange1} bid - {exchange2} ask",
         "data_points": len(spread_df),

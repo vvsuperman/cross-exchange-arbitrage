@@ -92,8 +92,21 @@ class LighterRecorderApp:
 
         for target in self.config.targets:
             client = LighterClient(Config(ticker=target.symbol))
-            await client._initialize_lighter_client()
-            market_index, _base_multiplier, _price_multiplier = await client._get_market_config(target.symbol)
+            try:
+                await client._initialize_lighter_client()
+                market_index, _base_multiplier, _price_multiplier = await client._get_market_config(target.symbol)
+            except Exception as exc:
+                logger.warning(
+                    "lighter target skipped logical=%s symbol=%s error=%s",
+                    target.logical_symbol,
+                    target.symbol,
+                    exc,
+                )
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
+                continue
 
             if lighter_client_instance is None:
                 lighter_client_instance = client.lighter_client
@@ -116,7 +129,7 @@ class LighterRecorderApp:
             )
 
         if lighter_client_instance is None or lighter_account_index is None:
-            raise RuntimeError("no lighter targets configured")
+            raise RuntimeError("no valid lighter targets configured")
 
         self.ws_manager = LighterMultiTickerWebSocketManager(
             lighter_client_instance,

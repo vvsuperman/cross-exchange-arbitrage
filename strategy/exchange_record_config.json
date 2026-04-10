@@ -1,37 +1,328 @@
 {
-  "omni": [
-    {
-      "logical_symbol": "XAU",
-      "symbol": "XAUT",
-      "user_data_dir": "~/Library/Application Support/Google/Chrome/omni-trader-xau",
-      "path": "perpetual/XAUT",
-      "quantity": 1.0
-    }
-  ],
+  "omni": {
+    "order_user_data_dir": "~/Library/Application Support/Google/Chrome/omni-trader-xau",
+    "record_user_data_dir": "~/Library/Application Support/Google/Chrome/omni-record",
+    "symbols": [
+      {
+        "logical_symbol": "XAU",
+        "symbol": "XAUT",
+        "quantity": 1.0
+      },
+      {
+        "logical_symbol": "PAXG",
+        "symbol": "PAXG",
+        "quantity": 1.0
+      },
+      {
+        "logical_symbol": "HYPE",
+        "symbol": "HYPE",
+        "quantity": 10
+      },
+      {
+        "logical_symbol": "WLFI",
+        "symbol": "WLFI",
+        "quantity": 10000
+      },
+      {
+        "logical_symbol": "ASTER",
+        "symbol": "ASTER",
+        "quantity": 100
+      }
+      
+    ]
+  },
   "tradexyz": [
     {
-      "logical_symbol": "WTI",
+      "logical_symbol": "CL",
       "symbol": "CL",
-      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-wti",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-cl",
       "path": "?market=CL&tab=positions",
       "quantity": 1.0
     },
     {
-      "logical_symbol": "XAU",
+      "logical_symbol": "BRENTOIL",
+      "symbol": "BRENTOIL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-brentoil",
+      "path": "?market=BRENTOIL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "SP500",
+      "symbol": "SP500",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-sp500",
+      "path": "?market=SP500&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "XYZ100",
+      "symbol": "XYZ100",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-xyz100",
+      "path": "?market=XYZ100&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "SILVER",
+      "symbol": "SILVER",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-silver",
+      "path": "?market=SILVER&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "CRCL",
+      "symbol": "CRCL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-crcl",
+      "path": "?market=CRCL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "GOLD",
       "symbol": "GOLD",
-      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-xau",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-gold",
       "path": "?market=GOLD&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "SNDK",
+      "symbol": "SNDK",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-sndk",
+      "path": "?market=SNDK&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "TSLA",
+      "symbol": "TSLA",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-tsla",
+      "path": "?market=TSLA&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "INTC",
+      "symbol": "INTC",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-intc",
+      "path": "?market=INTC&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "NATGAS",
+      "symbol": "NATGAS",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-natgas",
+      "path": "?market=NATGAS&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "COIN",
+      "symbol": "COIN",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-coin",
+      "path": "?market=COIN&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "HOOD",
+      "symbol": "HOOD",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-hood",
+      "path": "?market=HOOD&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "MU",
+      "symbol": "MU",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-mu",
+      "path": "?market=MU&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "EWY",
+      "symbol": "EWY",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-ewy",
+      "path": "?market=EWY&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "NVDA",
+      "symbol": "NVDA",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-nvda",
+      "path": "?market=NVDA&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "GOOGL",
+      "symbol": "GOOGL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-googl",
+      "path": "?market=GOOGL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "AMZN",
+      "symbol": "AMZN",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-amzn",
+      "path": "?market=AMZN&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "PLTR",
+      "symbol": "PLTR",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-pltr",
+      "path": "?market=PLTR&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "COPPER",
+      "symbol": "COPPER",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-copper",
+      "path": "?market=COPPER&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "MSTR",
+      "symbol": "MSTR",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-mstr",
+      "path": "?market=MSTR&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "MSFT",
+      "symbol": "MSFT",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-msft",
+      "path": "?market=MSFT&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "CRWV",
+      "symbol": "CRWV",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-crwv",
+      "path": "?market=CRWV&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "PLATINUM",
+      "symbol": "PLATINUM",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-platinum",
+      "path": "?market=PLATINUM&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "META",
+      "symbol": "META",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-meta",
+      "path": "?market=META&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "AAPL",
+      "symbol": "AAPL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-aapl",
+      "path": "?market=AAPL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "ORCL",
+      "symbol": "ORCL",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-orcl",
+      "path": "?market=ORCL&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "SKHYNIX",
+      "symbol": "SKHX",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-skhynix",
+      "path": "?market=SKHX&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "BABA",
+      "symbol": "BABA",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-baba",
+      "path": "?market=BABA&tab=positions",
+      "quantity": 1.0
+    },
+    {
+      "logical_symbol": "TSM",
+      "symbol": "TSM",
+      "user_data_dir": "~/Library/Application Support/Google/Chrome/xyz-trader-tsm",
+      "path": "?market=TSM&tab=positions",
       "quantity": 1.0
     }
   ],
   "lighter": [
     {
+      "logical_symbol": "EURUSD",
+      "symbol": "EURUSD"
+    },
+    {
       "logical_symbol": "XAU",
       "symbol": "XAU"
     },
     {
+      "logical_symbol": "XAG",
+      "symbol": "XAG"
+    },
+    {
+      "logical_symbol": "BRENTOIL",
+      "symbol": "BRENTOIL"
+    },
+    {
+      "logical_symbol": "NATGAS",
+      "symbol": "NATGAS"
+    },
+    {
+      "logical_symbol": "USDKRW",
+      "symbol": "USDKRW"
+    },
+    {
+      "logical_symbol": "USDJPY",
+      "symbol": "USDJPY"
+    },
+    {
+      "logical_symbol": "GBPUSD",
+      "symbol": "GBPUSD"
+    },
+    {
+      "logical_symbol": "USDCHF",
+      "symbol": "USDCHF"
+    },
+    {
+      "logical_symbol": "NZDUSD",
+      "symbol": "NZDUSD"
+    },
+    {
       "logical_symbol": "WTI",
       "symbol": "WTI"
+    },
+    {
+      "logical_symbol": "XCU",
+      "symbol": "XCU"
+    },
+    {
+      "logical_symbol": "XPT",
+      "symbol": "XPT"
+    },
+    {
+      "logical_symbol": "XPD",
+      "symbol": "XPD"
+    },
+    {
+      "logical_symbol": "SKHYNIX",
+      "symbol": "SKHYNIX"
+    },
+    {
+      "logical_symbol": "SAMSUNG",
+      "symbol": "SAMSUNG"
+    },
+    {
+      "logical_symbol": "HYUNDAI",
+      "symbol": "HYUNDAI"
+    },
+    {
+      "logical_symbol": "HANMI",
+      "symbol": "HANMI"
+    },
+    {
+      "logical_symbol": "KRCOMP",
+      "symbol": "KRCOMP"
+    },
+    {
+      "logical_symbol": "NVDA",
+      "symbol": "NVDA"
     }
   ]
 }

@@ -163,6 +163,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.playwright-cli/
 
 # pytype static type analyzer
 .pytype/

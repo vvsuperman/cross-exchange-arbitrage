@@ -95,7 +95,7 @@
     <div class="container">
         <div class="panel">
             <h1>Exchange 价差监控</h1>
-            <p class="hint">任选两个交易所，按 价差1 = 交易所2 bid - 交易所1 ask，价差2 = 交易所1 bid - 交易所2 ask 计算。</p>
+            <p class="hint">任选两个交易所或同交易所不同标的，按 价差1 = 交易所2 bid - 交易所1 ask，价差2 = 交易所1 bid - 交易所2 ask 计算。</p>
             <div class="controls">
                 <div>
                     <label for="exchange1">交易所1</label>
@@ -114,10 +114,18 @@
                     </select>
                 </div>
                 <div>
-                    <label for="ticker">标的</label>
-                    <select id="ticker">
-                        {% for t in tickers %}
-                        <option value="{{ t }}">{{ t }}</option>
+                    <label for="symbol1">交易所1标的</label>
+                    <select id="symbol1">
+                        {% for t in exchange1_symbols %}
+                        <option value="{{ t }}" {% if t == default_symbol1 %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="symbol2">交易所2标的</label>
+                    <select id="symbol2">
+                        {% for t in exchange2_symbols %}
+                        <option value="{{ t }}" {% if t == default_symbol2 %}selected{% endif %}>{{ t }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -185,26 +193,24 @@
             )).join('');
         }
 
-        async function refreshTickers(preferredTicker = '') {
-            const exchange1 = document.getElementById('exchange1').value;
-            const exchange2 = document.getElementById('exchange2').value;
-            const tickerSelect = document.getElementById('ticker');
-            const params = new URLSearchParams({ exchange1, exchange2 });
-            const response = await fetch(`/api/tickers?${params.toString()}`);
+        async function refreshSymbols(exchange, selectId, preferredSymbol = '') {
+            const symbolSelect = document.getElementById(selectId);
+            const params = new URLSearchParams({ exchange });
+            const response = await fetch(`/api/symbols?${params.toString()}`);
             const data = await response.json();
             if (!data.success) {
                 document.getElementById('error').textContent = data.message || '加载标的失败';
                 return false;
             }
 
-            const tickers = data.tickers || [];
-            tickerSelect.innerHTML = tickers.map((ticker) => (
-                `<option value="${ticker}">${ticker}</option>`
+            const symbols = data.symbols || [];
+            symbolSelect.innerHTML = symbols.map((symbol) => (
+                `<option value="${symbol}">${symbol}</option>`
             )).join('');
-            if (preferredTicker && tickers.includes(preferredTicker)) {
-                tickerSelect.value = preferredTicker;
+            if (preferredSymbol && symbols.includes(preferredSymbol)) {
+                symbolSelect.value = preferredSymbol;
             }
-            return tickers.length > 0;
+            return symbols.length > 0;
         }
 
         async function handleExchangeChange() {
@@ -212,12 +218,10 @@
             const exchange2 = document.getElementById('exchange2').value;
             const errorBox = document.getElementById('error');
             errorBox.textContent = '';
-            if (exchange1 === exchange2) {
-                errorBox.textContent = '请选择两个不同的交易所';
-                return;
-            }
-            const currentTicker = document.getElementById('ticker').value;
-            await refreshTickers(currentTicker);
+            const currentSymbol1 = document.getElementById('symbol1').value;
+            const currentSymbol2 = document.getElementById('symbol2').value;
+            await refreshSymbols(exchange1, 'symbol1', currentSymbol1);
+            await refreshSymbols(exchange2, 'symbol2', currentSymbol2);
         }
 
         async function loadData() {
@@ -226,19 +230,16 @@
 
             const exchange1 = document.getElementById('exchange1').value;
             const exchange2 = document.getElementById('exchange2').value;
-            if (exchange1 === exchange2) {
-                errorBox.textContent = '请选择两个不同的交易所';
-                return;
-            }
-
-            const ticker = document.getElementById('ticker').value;
+            const symbol1 = document.getElementById('symbol1').value;
+            const symbol2 = document.getElementById('symbol2').value;
             const startTime = document.getElementById('start_time').value;
             const endTime = document.getElementById('end_time').value;
 
             const params = new URLSearchParams({
                 exchange1,
                 exchange2,
-                ticker,
+                symbol1,
+                symbol2,
                 start_time: startTime,
                 end_time: endTime,
             });
@@ -344,7 +345,8 @@
         }
 
         (async () => {
-            await refreshTickers(document.getElementById('ticker').value);
+            await refreshSymbols(document.getElementById('exchange1').value, 'symbol1', document.getElementById('symbol1').value);
+            await refreshSymbols(document.getElementById('exchange2').value, 'symbol2', document.getElementById('symbol2').value);
             await loadData();
         })();
     </script>

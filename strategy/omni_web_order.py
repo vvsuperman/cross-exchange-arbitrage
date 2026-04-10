@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record Omni frontend quotes into bbo_data."""
+"""Open Omni order browser profiles for configured symbols."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ _DEFAULT_CONFIG_PATH = os.path.join(PROJECT_ROOT, "strategy", "exchange_record_c
 def _handle_shutdown(signum, _frame) -> None:
     global _SHUTDOWN_REQUESTED
     _SHUTDOWN_REQUESTED = True
-    print(f"[omni_web_recorder] received signal {signum}, shutting down...")
+    print(f"[omni_web_order] received signal {signum}, shutting down...")
 
 
 def install_signal_handlers() -> None:
@@ -52,7 +52,7 @@ class ExchangeTargetConfig:
     logical_symbol: str
     symbol: str
     user_data_dir: str
-    path: Optional[str] = None
+    path: str
     quantity: float = 1.0
 
 
@@ -78,7 +78,7 @@ def _load_json_file(path: str) -> dict:
         return json.load(handle)
 
 
-def _normalize_target_config(data: dict) -> ExchangeTargetConfig:
+def _normalize_target_config(data: dict, user_data_dir: str) -> ExchangeTargetConfig:
     payload = data or {}
     symbol = str(payload.get("symbol") or "").strip().upper()
     logical_symbol = str(payload.get("logical_symbol") or symbol).strip().upper()
@@ -86,38 +86,19 @@ def _normalize_target_config(data: dict) -> ExchangeTargetConfig:
         raise ValueError("omni symbol is required")
     if not logical_symbol:
         raise ValueError("omni logical_symbol is required")
-    user_data_dir = os.path.expanduser(
-        str(payload.get("user_data_dir") or OMNI_TRADER_USER_DATA_DIR).strip()
-    )
-    if not user_data_dir:
-        raise ValueError("omni user_data_dir is required")
-    raw_path = payload.get("path")
-    path = str(raw_path).strip() if raw_path is not None else None
     quantity = float(payload.get("quantity", 1.0))
     return ExchangeTargetConfig(
         exchange="omni",
         logical_symbol=logical_symbol,
         symbol=symbol,
         user_data_dir=user_data_dir,
-        path=path or None,
+        path=f"perpetual/{symbol}",
         quantity=quantity,
     )
 
 
-def _validate_unique_profiles(targets: list[ExchangeTargetConfig]) -> None:
-    seen: dict[str, str] = {}
-    for target in targets:
-        label = f"{target.logical_symbol}:{target.symbol}"
-        existing = seen.get(target.user_data_dir)
-        if existing:
-            raise ValueError(
-                f"duplicate user_data_dir detected: {target.user_data_dir} used by {existing} and {label}"
-            )
-        seen[target.user_data_dir] = label
-
-
 def parse_args() -> RecorderConfig:
-    parser = argparse.ArgumentParser(description="Start Omni browsers, then persist quotes into bbo_data")
+    parser = argparse.ArgumentParser(description="Start Omni order browser, then persist quotes into bbo_data")
     parser.add_argument("--config", default=_DEFAULT_CONFIG_PATH, help="JSON config file")
     parser.add_argument("--interval", type=float, default=10.0, help="Polling interval in seconds")
     parser.add_argument("--duration", type=float, default=0.0, help="Total runtime in seconds; 0 means forever")
@@ -134,15 +115,19 @@ def parse_args() -> RecorderConfig:
         raise ValueError(f"config file not found: {config_path}")
 
     payload = _load_json_file(config_path)
-    target_payloads = payload.get("omni")
+    omni_payload = payload.get("omni")
+    if not isinstance(omni_payload, dict):
+        raise ValueError("config must contain omni object")
+    target_payloads = omni_payload.get("symbols")
     if not isinstance(target_payloads, list) or not target_payloads:
-        raise ValueError("config must contain a non-empty omni list")
+        raise ValueError("config must contain a non-empty omni.symbols list")
+    user_data_dir = os.path.expanduser(
+        str(omni_payload.get("order_user_data_dir") or OMNI_TRADER_USER_DATA_DIR).strip()
+    )
+    if not user_data_dir:
+        raise ValueError("config must contain omni.order_user_data_dir")
 
-    targets = [_normalize_target_config(item) for item in target_payloads]
-    if not targets:
-        raise ValueError("config must contain at least one omni target")
-
-    _validate_unique_profiles(targets)
+    targets = [_normalize_target_config(item, user_data_dir) for item in target_payloads]
     return RecorderConfig(
         interval=args.interval,
         duration=args.duration,
@@ -181,10 +166,7 @@ def _print_snapshots(label: str, snapshots: Iterable) -> None:
 
 
 def _market_override_payload(target: ExchangeTargetConfig) -> dict[str, dict[str, Any]]:
-    payload: dict[str, Any] = {"quantity": target.quantity}
-    if target.path:
-        payload["path"] = target.path
-    return {target.symbol: payload}
+    return {target.symbol: {"quantity": target.quantity, "path": target.path}}
 
 
 def _start_runtime(target: ExchangeTargetConfig) -> TargetRuntime:
@@ -195,7 +177,7 @@ def _start_runtime(target: ExchangeTargetConfig) -> TargetRuntime:
         market_overrides=_market_override_payload(target),
     )
     print(
-        f"[omni_web_recorder] opening omni market: "
+        f"[omni_web_order] opening omni market: "
         f"logical={target.logical_symbol} symbol={target.symbol} profile={target.user_data_dir}"
     )
     client.open_market_tabs()
@@ -245,7 +227,7 @@ def main() -> int:
 
     runtimes: list[TargetRuntime] = []
     for target in config.targets:
-        cleanup_omni_profile(target.user_data_dir, reason="omni_web_recorder_start")
+        cleanup_omni_profile(target.user_data_dir, reason="omni_web_order_start")
         runtimes.append(_start_runtime(target))
 
     try:
@@ -262,19 +244,19 @@ def main() -> int:
                         raise
                     runtime.recovery_attempts += 1
                     print(
-                        "[omni_web_recorder] webdriver session dropped "
+                        "[omni_web_order] webdriver session dropped "
                         f"logical={runtime.config.logical_symbol} "
                         f"(attempt {runtime.recovery_attempts}/{_MAX_SESSION_RECOVERY_ATTEMPTS}): {exc}"
                     )
                     if runtime.recovery_attempts > _MAX_SESSION_RECOVERY_ATTEMPTS:
                         print(
-                            "[omni_web_recorder] exceeded webdriver recovery attempts "
+                            "[omni_web_order] exceeded webdriver recovery attempts "
                             f"for logical={runtime.config.logical_symbol}; exiting"
                         )
                         return 1
 
                     _safe_quit_runtime(runtime)
-                    cleanup_omni_profile(runtime.config.user_data_dir, reason="omni_web_recorder_recover")
+                    cleanup_omni_profile(runtime.config.user_data_dir, reason="omni_web_order_recover")
                     time.sleep(2.0)
                     recovered = _start_runtime(runtime.config)
                     recovered.recovery_attempts = runtime.recovery_attempts
